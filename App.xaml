@@ -1,0 +1,17 @@
+﻿<Application x:Class="VewModelSample.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:VewModelSample"
+             StartupUri="MainWindow.xaml">
+    
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Themes/CalenderStyle.xaml"/>
+                <ResourceDictionary Source="Themes/TextBoxWatermark.xaml"/>
+                <ResourceDictionary Source="Themes/buttonHover.xaml"/>
+                <ResourceDictionary Source="Themes/GroupBoxBorderRemoveWhiteSection.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

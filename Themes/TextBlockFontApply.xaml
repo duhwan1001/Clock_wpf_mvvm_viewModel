@@ -1,0 +1,6 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Style x:Key="TextBlockFont" TargetType="{x:Type TextBlock}">
+        <Setter Property="FontFamily" Value="C:\Users\user\source\repos\Clock_wpf_mvvm\Fonts\#Gowun Dodum"/>
+    </Style>
+</ResourceDictionary>
