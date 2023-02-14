@@ -556,21 +556,63 @@ namespace VewModelSample.Model
 
         #region TCP comm -------------------------------------------------------------------
 
-        public String serverIpAddr;
-        public String serverPort;
+        // Server ------------------------
+
+        public String serverIpAddr = "192.168.35.236";
+        public String serverPort = "5000";
 
         public String serverSendData;
-
+        
+        // 버튼 비활성화 활성화 true/false
         public Boolean serverButtonTF = false;
+        // 텍스트 박스 활성화 true/false
         public Boolean serverTextBoxTF = true;
 
-        public String clientIpAddr;
-        public String clientPort;
+        // Client ------------------------
+
+        public String clientIpAddr = "192.168.35.236";
+        public String clientPort = "5000";
 
         public String clientSendData;
 
+        // 버튼 비활성화 활성화 true/false
         public Boolean clientButtonTF = false;
+        // 텍스트 박스 활성화 true/false
         public Boolean clientTextBoxTF = true;
+
+        public Uri clientFrameBind;
+
+        // Common ------------------------
+
+        // 시간 변경
+        public String tcp_ChangeHour;
+        public String tcp_ChangeMin;
+        public String tcp_ChangeSec;
+
+        // 타임 포맷 변경
+        public String tcp_TimeFormat;
+
+        // 표준시 변경
+        public int tcp_Standard = 0 ;
+        // 0 : KST
+        // 1 : UTC
+        // 2 : EST
+
+        // 알람 추가
+        public String tcp_AlarmHour;
+        public String tcp_AlarmMin;
+        public String tcp_AlarmSec;
+
+        // 스톱 워치
+        public int tcp_StopWatchFlag;
+
+        //public enum tcp_StopWatchFlag : int
+        //{
+        //    start = 0, // 0 : 시작
+        //    stop,      // 1 : 정지
+        //    reset,     // 2 : 리셋
+        //    lap        // 3 : 기록
+        //}
 
         #endregion
     }

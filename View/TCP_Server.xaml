@@ -11,6 +11,10 @@
         <viewModel:TCP_Server_ViewModel/>
     </Window.DataContext>
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="0.8*"/>
+            <RowDefinition Height="42.1854545454546"/>
+        </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="2*"/>
             <ColumnDefinition Width="1.5*"/>
@@ -21,10 +25,7 @@
                 <RowDefinition Height="2*"/>
             </Grid.RowDefinitions>
             <Grid Grid.Row="0">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="1*"/>
-                    <RowDefinition Height="1*"/>
-                </Grid.RowDefinitions>
+                <GroupBox Style="{DynamicResource BorderThin}" Grid.Row="0" BorderThickness="3" Header="주소값 입력" BorderBrush="Black"/>
                 <Grid Grid.Row="0">
                     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal">
                         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal">
@@ -47,18 +48,33 @@
                         
                     </Grid>
                 </Grid>
-
             </Grid>
             <Grid Grid.Row="1">
-
+                <DataGrid ItemsSource="{Binding Path=logDatas, Mode=TwoWay, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=True}" AutoGenerateColumns="False" CanUserAddRows="False">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Sequence" MinWidth="10" Width="Auto" Binding="{Binding Path=dataGridSequence}"></DataGridTextColumn>
+                        <DataGridTextColumn Header="Function" MinWidth="10" Width="Auto" Binding="{Binding Path=dataGridFunction}"></DataGridTextColumn>
+                        <DataGridTextColumn Header="AddedTime" MinWidth="10" Width="Auto" Binding="{Binding Path=dataGridAddedTime}"></DataGridTextColumn>
+                        <DataGridTextColumn Header="RecordText" MinWidth="10" Width="Auto" Binding="{Binding Path=dataGridSimpleRecordText}"></DataGridTextColumn>
+                    </DataGrid.Columns>
+                </DataGrid>                
             </Grid>
         </Grid>
+        <GroupBox Style="{DynamicResource BorderThin}" Grid.Column="1" Grid.Row="0" BorderThickness="3" Header="기능" BorderBrush="Black"/>
         <Grid Grid.Column="1">
             <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Width="317">
                 <Button Style="{DynamicResource buttonHover}" Command="{Binding TryConnect}" Content="서버 열기" Margin="15" Height="30"/>
-                <Button IsEnabled="{Binding ServerButtonTF}" Style="{DynamicResource buttonHover}" Command="{Binding ServerTerminate}" Content="서버 종료" Margin="15" Height="30"/>
-                <Button IsEnabled="{Binding ServerButtonTF}" Style="{DynamicResource buttonHover}" Command="{Binding ServerViewLog}" Content="로그" Margin="15" Height="30"/>
+                <Button Style="{DynamicResource buttonHover}" Command="{Binding ServerTerminate}" Content="서버 종료" Margin="15" Height="30"/>
+                <Button Style="{DynamicResource buttonHover}" Command="{Binding ServerViewLog}" Content="로그" Margin="15" Height="30"/>
             </StackPanel>
         </Grid>
+        <Grid Grid.Column="1" Grid.Row="1" Panel.ZIndex="1">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Button IsCancel="True" Style="{DynamicResource buttonHover}" Command="{x:Static viewModel:ClockViewModel.CloseCommand}" CommandParameter="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" Content="닫기" HorizontalAlignment="Center" VerticalAlignment="Center" Width="113" Margin="20,0,0,0"/>
+            </StackPanel>
+        </Grid>
+        
+        <Border Background="DarkGray" Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="6"/>
+        
     </Grid>
 </Window>

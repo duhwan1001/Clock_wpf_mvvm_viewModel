@@ -11,6 +11,10 @@
         <viewModel:TCP_Client_ViewModel/>
     </Window.DataContext>
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="0.8*"/>
+            <RowDefinition Height="42.1854545454546"/>
+        </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="2*"/>
             <ColumnDefinition Width="1.5*"/>
@@ -23,8 +27,9 @@
             <Grid Grid.Row="0">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="1*"/>
-                    <RowDefinition Height="1*"/>
+                    <!--<RowDefinition Height="1*"/>-->
                 </Grid.RowDefinitions>
+                <GroupBox Style="{DynamicResource BorderThin}" Grid.Column="0" Grid.Row="0" Grid.RowSpan="2" BorderThickness="3" Panel.ZIndex="1" Header="주소 입력" BorderBrush="Black"/>
                 <Grid Grid.Row="0">
                     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal">
                         <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal">
@@ -37,7 +42,7 @@
                         </StackPanel>
                     </StackPanel>
                 </Grid>
-                <Grid Grid.Row="1">
+                <!--<Grid Grid.Row="1">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="1*"/>
                         <ColumnDefinition Width="2*"/>
@@ -46,23 +51,32 @@
                     <Grid Grid.Column="1">
                         <Button Style="{DynamicResource buttonHover}" Command="{Binding TryConnect}" Content="연결 시도"/>
                     </Grid>
-                </Grid>
+                </Grid>-->
                     
                 </Grid>
+            <!--<GroupBox Style="{DynamicResource BorderThin}" Grid.Column="0" Grid.Row="1" BorderThickness="3" Panel.ZIndex="1" Header="설정값 입력" BorderBrush="Black"/>-->
             <Grid Grid.Row="1">
-                 
+                 <Frame Source="{Binding ClientFrameBind}"/>
             </Grid>
         </Grid>
+        <GroupBox Style="{DynamicResource BorderThin}" Grid.Column="1" Grid.Row="0" BorderThickness="3" Header="기능" BorderBrush="Black"/>
         <Grid Grid.Column="1">
             <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Width="317">
-                <Button IsEnabled="{Binding ClientButtonTF}" Style="{DynamicResource buttonHover}" Command="{Binding ClientChangeTime}" Content="시간 설정" Margin="15" Height="30"/>
-                <Button IsEnabled="{Binding ClientButtonTF}" Style="{DynamicResource buttonHover}" Command="{Binding ClientCTF}" Content="타임 포맷 변경" Margin="15" Height="30"/>
-                <Button IsEnabled="{Binding ClientButtonTF}" Style="{DynamicResource buttonHover}" Command="{Binding ClientStandardChange}" Content="표준시 변경" Margin="15" Height="30"/>
-                <Button IsEnabled="{Binding ClientButtonTF}" Style="{DynamicResource buttonHover}" Command="{Binding ClientSetAlarm}" Content="알람 설정" Margin="15" Height="30"/>
-                <Button IsEnabled="{Binding ClientButtonTF}" Style="{DynamicResource buttonHover}" Command="{Binding ClientStopwatch}" Content="스톱 워치 설정" Margin="15" Height="30"/>                          
-                <Button IsEnabled="{Binding ClientButtonTF}" Style="{DynamicResource buttonHover}" Command="{Binding ClientTerminate}" Content="연결 종료" Margin="15" Height="30"/>
-                <Button IsEnabled="{Binding ClientButtonTF}" Style="{DynamicResource buttonHover}" Command="{Binding ClientViewLog}" Content="로그" Margin="15" Height="30"/>
+                <Button Style="{DynamicResource buttonHover}" Command="{Binding ClientChangeTime}" Content="시간 설정" Margin="15,15,15,0" Height="30"/>
+                <Button Style="{DynamicResource buttonHover}" Command="{Binding ClientCTF}" Content="타임 포맷 변경" Margin="15,15,15,0" Height="30"/>
+                <Button Style="{DynamicResource buttonHover}" Command="{Binding ClientStandardChange}" Content="표준시 변경" Margin="15,15,15,0" Height="30"/>
+                <Button Style="{DynamicResource buttonHover}" Command="{Binding ClientSetAlarm}" Content="알람 설정" Margin="15,15,15,0" Height="30"/>
+                <Button Style="{DynamicResource buttonHover}" Command="{Binding ClientStopwatch}" Content="스톱 워치 설정" Margin="15,15,15,0" Height="30"/>
+                <Button Style="{DynamicResource buttonHover}" Command="{Binding ClientTerminate}" Content="연결 종료" Margin="15,15,15,0" Height="30"/>
+                <Button Style="{DynamicResource buttonHover}" Command="{Binding ClientViewLog}" Content="로그" Margin="15,15,15,0" Height="30"/>
             </StackPanel>
         </Grid>
+        <Grid Grid.Column="1" Grid.Row="1" Panel.ZIndex="1">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Button IsCancel="True" Style="{DynamicResource buttonHover}" Command="{x:Static viewModel:ClockViewModel.CloseCommand}" CommandParameter="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Window}}}" Content="닫기" HorizontalAlignment="Center" VerticalAlignment="Center" Width="113"/>
+            </StackPanel>
+        </Grid>
+
+        <Border Background="DarkGray" Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="6"/>
     </Grid>
 </Window>

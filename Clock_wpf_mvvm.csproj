@@ -66,6 +66,8 @@
     <Compile Include="Model\ClockModel.cs" />
     <Resource Include="Fonts\NotoSansKR-Regular.otf" />
     <Resource Include="Fonts\GowunDodum-Regular.ttf" />
+    <Compile Include="UtilClass\Packet.cs" />
+    <Compile Include="UtilClass\TCP_Properties.cs" />
     <Compile Include="ViewModel\AlarmViewModel.cs" />
     <Compile Include="UtilClass\DispatcherService.cs" />
     <Compile Include="ViewModel\BaseUserControlViewModel.cs" />
@@ -88,6 +90,21 @@
     </Compile>
     <Compile Include="View\ChangeTime.xaml.cs">
       <DependentUpon>ChangeTime.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\ClientFrame\ChangeStandardFrame.xaml.cs">
+      <DependentUpon>ChangeStandardFrame.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\ClientFrame\ChangeTimeFormatFrame.xaml.cs">
+      <DependentUpon>ChangeTimeFormatFrame.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\ClientFrame\ChangeTimeFrame.xaml.cs">
+      <DependentUpon>ChangeTimeFrame.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\ClientFrame\SetAlarmFrame.xaml.cs">
+      <DependentUpon>SetAlarmFrame.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="View\ClientFrame\SetStopwatchFrame.xaml.cs">
+      <DependentUpon>SetStopwatchFrame.xaml</DependentUpon>
     </Compile>
     <Compile Include="View\ClockFunc.xaml.cs">
       <DependentUpon>ClockFunc.xaml</DependentUpon>
@@ -142,6 +159,26 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="View\ChangeTime.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\ClientFrame\ChangeStandardFrame.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\ClientFrame\ChangeTimeFormatFrame.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\ClientFrame\ChangeTimeFrame.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\ClientFrame\SetAlarmFrame.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="View\ClientFrame\SetStopwatchFrame.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

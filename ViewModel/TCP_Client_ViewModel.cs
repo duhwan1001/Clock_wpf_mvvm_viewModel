@@ -13,6 +13,8 @@ using System.Windows;
 using VewModelSample.Model;
 using VewModelSample.ViewModel.Command;
 using VewModelSample.View;
+using VewModelSample.UtilClass;
+using System.Windows.Forms;
 
 namespace VewModelSample.ViewModel
 {
@@ -41,6 +43,7 @@ namespace VewModelSample.ViewModel
         StreamWriter streamWriter;
 
         // 모델에 선언해줘야 되는 부분
+        // Client -------------
         public String ClientIPAddr
         {
             get { return clockModel.clientIpAddr; }
@@ -71,6 +74,66 @@ namespace VewModelSample.ViewModel
             set { clockModel.clientTextBoxTF = value; OnPropertyChanged("ClientTextBoxTF"); }
         }
 
+        public Uri ClientFrameBind
+        {
+            get { return clockModel.clientFrameBind; }
+            set { clockModel.clientFrameBind = value; OnPropertyChanged("ClientFrameBind"); }
+        }
+
+        // Common --------------------
+        public string TCP_ChangeHour
+        {
+            get { return clockModel.tcp_ChangeHour; }
+            set { clockModel.tcp_ChangeHour = value; OnPropertyChanged("TCP_ChangeHour"); }
+        }
+
+        public string TCP_ChangeMin
+        {
+            get { return clockModel.tcp_ChangeMin; }
+            set { clockModel.tcp_ChangeMin = value; OnPropertyChanged("TCP_ChangeMin"); }
+        }
+
+        public string TCP_ChangeSec
+        {
+            get { return clockModel.tcp_ChangeSec; }
+            set { clockModel.tcp_ChangeSec = value; OnPropertyChanged("TCP_ChangeSec"); }
+        }
+
+        public string TCP_TimeFormat
+        {
+            get { return clockModel.tcp_TimeFormat; }
+            set { clockModel.tcp_TimeFormat = value; OnPropertyChanged("TCP_TimeFormat"); }
+        }
+
+        public int TCP_Standard
+        {
+            get { return clockModel.tcp_Standard; }
+            set { clockModel.tcp_Standard = value; OnPropertyChanged("TCP_Standard"); }
+        }
+
+        public string TCP_AlarmHour
+        {
+            get { return clockModel.tcp_AlarmHour; }
+            set { clockModel.tcp_AlarmHour = value; OnPropertyChanged("TCP_AlarmHour"); }
+        }
+
+        public string TCP_AlarmMin
+        {
+            get { return clockModel.tcp_AlarmMin; }
+            set { clockModel.tcp_AlarmMin = value; OnPropertyChanged("TCP_AlarmMin"); }
+        }
+
+        public string TCP_AlarmSec
+        {
+            get { return clockModel.tcp_AlarmSec; }
+            set { clockModel.tcp_AlarmSec = value; OnPropertyChanged("TCP_AlarmSec"); }
+        }
+
+        public int TCP_StopWatchFlag
+        {
+            get { return clockModel.tcp_StopWatchFlag; }
+            set { clockModel.tcp_StopWatchFlag = value; OnPropertyChanged("TCP_StopWatchFlag"); }
+        }
         // 모델 선언 end
 
         // 연결 시도 버튼에 매핑
@@ -90,7 +153,7 @@ namespace VewModelSample.ViewModel
             tcpClient.Connect(ipEnd);
             // 서버 연결됨
                      
-            if (MessageBox.Show("어디서 접근했는지 보여주고 수락하지 않는다면 리턴") == MessageBoxResult.Cancel)
+            if (System.Windows.MessageBox.Show("어디서 접근했는지 보여주고 수락하지 않는다면 리턴") == MessageBoxResult.Cancel)
             {
                 return;
             }
@@ -104,58 +167,113 @@ namespace VewModelSample.ViewModel
             
             while (tcpClient.Connected)
             {
-                string receiveData = streamReader.ReadLine();
                 // receiveData - 수신 데이터
+                string receiveData = streamReader.ReadLine();
                                 
             }
 
         }
-
+        
         // 시간 변경
         public ICommand ClientChangeTime => new RelayCommand<object>(clientChangeTime, null);
         private void clientChangeTime(object e)
         {
-            // 시계 시간 설정하는 로직
-            streamWriter.WriteLine(ClientSendData);
+            // 시계 시간 설정 뷰
+            Uri uri = new Uri("ClientFrame/ChangeTimeFrame.xaml", UriKind.Relative);
+            ClientFrameBind = uri;
         }
 
         // 타임 포맷
         public ICommand ClientCTF => new RelayCommand<object>(clientCTF, null);
         private void clientCTF(object e)
         {
-            // 타임 포맷 설정하는 로직
-            streamWriter.WriteLine(ClientSendData);
+            // 타임 포맷 뷰
+            Uri uri = new Uri("ClientFrame/ChangeTimeFormatFrame.xaml", UriKind.Relative);
+            ClientFrameBind = uri;
         }
 
         // 표준시 변경
         public ICommand ClientStandardChange => new RelayCommand<object>(clientStandardChange, null);
         private void clientStandardChange(object e)
         {
-            // 표준시 바꾸는 로직
-            streamWriter.WriteLine(ClientSendData);
+            // 표준시 뷰
+            Uri uri = new Uri("ClientFrame/ChangeStandardFrame.xaml", UriKind.Relative);
+            ClientFrameBind = uri;
         }
+
+        public ICommand SendStandard => new RelayCommand<object>(sendStandard, null);
+        private void sendStandard(object e)
+        {
+            try
+            {
+                byte[] buffer = new byte[1024 * 4];
+
+                // 서버 연결
+                tcpClient = new TcpClient();
+                IPEndPoint ipEnd = new IPEndPoint(IPAddress.Parse(ClientIPAddr), int.Parse(ClientPort));
+                tcpClient.Connect(ipEnd);
+
+                NetworkStream stream = tcpClient.GetStream();
+
+                // send packet
+                TCP_Properties.ChangeStandardValues standard = new TCP_Properties.ChangeStandardValues();
+                standard.packet_Type = (int)PacketType.ChangeStandard;
+                standard.Packet_Standard = TCP_Standard;
+
+                Packet.Serialize(standard).CopyTo(buffer, 0);
+
+                stream.Write(buffer, 0, buffer.Length);
+
+                // receive packet
+                Array.Clear(buffer, 0, buffer.Length);
+
+                int bytesRead = stream.Read(buffer, 0, buffer.Length);
+                TCP_Properties.Result result = (TCP_Properties.Result)Packet.Deserialize(buffer);
+
+                if (result.result)
+                {
+                    System.Windows.Forms.MessageBox.Show(result.reason, "클라이언트 확인", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                else
+                {
+                    System.Windows.Forms.MessageBox.Show(result.reason, "클라이언트 오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+
+                // close socket
+                stream.Close();
+                tcpClient.Close();
+
+            }
+            catch(Exception ex)
+            {
+                System.Windows.Forms.MessageBox.Show(ex.Message, "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+        
 
         // 알람
         public ICommand ClientSetAlarm => new RelayCommand<object>(clientSetAlarm, null);
         private void clientSetAlarm(object e)
         {
-            // 알람 추가하는 로직
-            streamWriter.WriteLine(ClientSendData);
+            // 알람 설정 뷰
+            Uri uri = new Uri("ClientFrame/SetAlarmFrame.xaml", UriKind.Relative);
+            ClientFrameBind = uri;
         }
 
         // 스톱워치
         public ICommand ClientStopwatch => new RelayCommand<object>(clientStopwatch, null);
         private void clientStopwatch(object e)
         {
-            // 스톱워치 세팅하는 로직
-            streamWriter.WriteLine(ClientSendData);
+            // 스톱워치 뷰
+            Uri uri = new Uri("ClientFrame/SetStopwatchFrame.xaml", UriKind.Relative);
+            ClientFrameBind = uri;
         }
 
         // 연결 종료
         public ICommand ClientTerminate => new RelayCommand<object>(clientTerminate, null);
         private void clientTerminate(object e)
         {
-            // 연결 종료 로직
+            // 연결 종료
             tcpClient.Close();
             ClientButtonTF = false;
             ClientTextBoxTF = true;
@@ -169,7 +287,7 @@ namespace VewModelSample.ViewModel
             viewLog.Show();
         }
 
-    }
 
+    }
 
 }
