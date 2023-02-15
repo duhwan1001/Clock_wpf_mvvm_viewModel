@@ -99,7 +99,7 @@ namespace VewModelSample.ViewModel
             set { clockModel.tcp_ChangeSec = value; OnPropertyChanged("TCP_ChangeSec"); }
         }
 
-        public string TCP_TimeFormat
+        public int TCP_TimeFormat
         {
             get { return clockModel.tcp_TimeFormat; }
             set { clockModel.tcp_TimeFormat = value; OnPropertyChanged("TCP_TimeFormat"); }
@@ -153,11 +153,6 @@ namespace VewModelSample.ViewModel
             tcpClient.Connect(ipEnd);
             // 서버 연결됨
                      
-            if (System.Windows.MessageBox.Show("어디서 접근했는지 보여주고 수락하지 않는다면 리턴") == MessageBoxResult.Cancel)
-            {
-                return;
-            }
-
             ClientButtonTF = true;
             ClientTextBoxTF = false;
 
@@ -183,6 +178,58 @@ namespace VewModelSample.ViewModel
             ClientFrameBind = uri;
         }
 
+        public ICommand SendChangeTime => new RelayCommand<object>(sendChangeTime, null);
+        private void sendChangeTime(object e)
+        {
+            try
+            {
+                byte[] buffer = new byte[1024 * 4];
+
+                // 서버 연결
+                tcpClient = new TcpClient();
+                IPEndPoint ipEnd = new IPEndPoint(IPAddress.Parse(ClientIPAddr), int.Parse(ClientPort));
+                tcpClient.Connect(ipEnd);
+
+                NetworkStream stream = tcpClient.GetStream();
+
+                // send packet
+                TCP_Properties.ChangeTimeValues changeTime = new TCP_Properties.ChangeTimeValues();
+                changeTime.packet_Type = (int)PacketType.ChangeTime;
+                changeTime.Packet_ChangeHour = TCP_ChangeHour;
+                changeTime.Packet_ChangeMin = TCP_ChangeMin;
+                changeTime.Packet_ChangeSec = TCP_ChangeSec;
+
+                Packet.Serialize(changeTime).CopyTo(buffer, 0);
+
+                stream.Write(buffer, 0, buffer.Length);
+
+                // receive packet
+                Array.Clear(buffer, 0, buffer.Length);
+
+                int bytesRead = stream.Read(buffer, 0, buffer.Length);
+                TCP_Properties.Result result = (TCP_Properties.Result)Packet.Deserialize(buffer);
+
+                if (result.result)
+                {
+                    System.Windows.Forms.MessageBox.Show(result.reason, "클라이언트 확인", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                else
+                {
+                    System.Windows.Forms.MessageBox.Show(result.reason, "클라이언트 오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+
+                // close socket
+                stream.Close();
+                tcpClient.Close();
+
+            }
+            catch (Exception ex)
+            {
+                System.Windows.Forms.MessageBox.Show(ex.Message, "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+
         // 타임 포맷
         public ICommand ClientCTF => new RelayCommand<object>(clientCTF, null);
         private void clientCTF(object e)
@@ -190,6 +237,55 @@ namespace VewModelSample.ViewModel
             // 타임 포맷 뷰
             Uri uri = new Uri("ClientFrame/ChangeTimeFormatFrame.xaml", UriKind.Relative);
             ClientFrameBind = uri;
+        }
+        
+        public ICommand SendTimeFormat => new RelayCommand<object>(sendTimeFormat, null);
+        private void sendTimeFormat(object e)
+        {
+            try
+            {
+                byte[] buffer = new byte[1024 * 4];
+
+                // 서버 연결
+                tcpClient = new TcpClient();
+                IPEndPoint ipEnd = new IPEndPoint(IPAddress.Parse(ClientIPAddr), int.Parse(ClientPort));
+                tcpClient.Connect(ipEnd);
+
+                NetworkStream stream = tcpClient.GetStream();
+
+                // send packet
+                TCP_Properties.ChangeTimeFormatValues standard = new TCP_Properties.ChangeTimeFormatValues();
+                standard.packet_Type = (int)PacketType.ChangeTimeFormat;
+                standard.Packet_TimeFormat = TCP_TimeFormat;
+
+                Packet.Serialize(standard).CopyTo(buffer, 0);
+
+                stream.Write(buffer, 0, buffer.Length);
+
+                // receive packet
+                Array.Clear(buffer, 0, buffer.Length);
+
+                int bytesRead = stream.Read(buffer, 0, buffer.Length);
+                TCP_Properties.Result result = (TCP_Properties.Result)Packet.Deserialize(buffer);
+
+                if (result.result)
+                {
+                    System.Windows.Forms.MessageBox.Show(result.reason, "클라이언트 확인", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                else
+                {
+                    System.Windows.Forms.MessageBox.Show(result.reason, "클라이언트 오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+
+                // close socket
+                stream.Close();
+                tcpClient.Close();
+
+            }
+            catch (Exception ex)
+            {
+                System.Windows.Forms.MessageBox.Show(ex.Message, "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         // 표준시 변경
@@ -260,6 +356,56 @@ namespace VewModelSample.ViewModel
             ClientFrameBind = uri;
         }
 
+        public ICommand SendAlarm => new RelayCommand<object>(sendAlarm, null);
+        private void sendAlarm(object e)
+        {
+            try
+            {
+                byte[] buffer = new byte[1024 * 4];
+
+                // 서버 연결
+                tcpClient = new TcpClient();
+                IPEndPoint ipEnd = new IPEndPoint(IPAddress.Parse(ClientIPAddr), int.Parse(ClientPort));
+                tcpClient.Connect(ipEnd);
+
+                NetworkStream stream = tcpClient.GetStream();
+
+                // send packet
+                TCP_Properties.AddAlarmValues standard = new TCP_Properties.AddAlarmValues();
+                standard.packet_Type = (int)PacketType.SetAlarm;
+                standard.Packet_AlarmHour = TCP_AlarmHour;
+                standard.Packet_AlarmMin = TCP_AlarmMin;
+
+                Packet.Serialize(standard).CopyTo(buffer, 0);
+
+                stream.Write(buffer, 0, buffer.Length);
+
+                // receive packet
+                Array.Clear(buffer, 0, buffer.Length);
+
+                int bytesRead = stream.Read(buffer, 0, buffer.Length);
+                TCP_Properties.Result result = (TCP_Properties.Result)Packet.Deserialize(buffer);
+
+                if (result.result)
+                {
+                    System.Windows.Forms.MessageBox.Show(result.reason, "클라이언트 확인", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                else
+                {
+                    System.Windows.Forms.MessageBox.Show(result.reason, "클라이언트 오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+
+                // close socket
+                stream.Close();
+                tcpClient.Close();
+
+            }
+            catch (Exception ex)
+            {
+                System.Windows.Forms.MessageBox.Show(ex.Message, "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
         // 스톱워치
         public ICommand ClientStopwatch => new RelayCommand<object>(clientStopwatch, null);
         private void clientStopwatch(object e)
@@ -268,6 +414,76 @@ namespace VewModelSample.ViewModel
             Uri uri = new Uri("ClientFrame/SetStopwatchFrame.xaml", UriKind.Relative);
             ClientFrameBind = uri;
         }
+
+        public ICommand ClientSWStart => new RelayCommand<object>(clientSWStart, null);
+        private void clientSWStart(object e)
+        {
+            StopwatchProcess(0);
+        }
+        public ICommand ClientSWPause=> new RelayCommand<object>(clientSWPause, null);
+        private void clientSWPause(object e)
+        {
+            StopwatchProcess(1);
+        }
+        public ICommand ClientSWReset=> new RelayCommand<object>(clientSWReset, null);
+        private void clientSWReset(object e)
+        {
+            StopwatchProcess(2);
+        }
+        public ICommand ClientSWRecord => new RelayCommand<object>(clientSWRecord, null);
+        private void clientSWRecord(object e)
+        {
+            StopwatchProcess(3);
+        }
+
+        public void StopwatchProcess(int function)
+        {
+            try
+            {
+                byte[] buffer = new byte[1024 * 4];
+
+                // 서버 연결
+                tcpClient = new TcpClient();
+                IPEndPoint ipEnd = new IPEndPoint(IPAddress.Parse(ClientIPAddr), int.Parse(ClientPort));
+                tcpClient.Connect(ipEnd);
+
+                NetworkStream stream = tcpClient.GetStream();
+
+                // send packet
+                TCP_Properties.StopWatchValues standard = new TCP_Properties.StopWatchValues();
+                standard.packet_Type = (int)PacketType.SetStopWatch;
+                standard.Packet_StopWatchFlag = function;
+                // 0 : start, 1 : pause, 2 : reset, 3 : record
+
+                Packet.Serialize(standard).CopyTo(buffer, 0);
+
+                stream.Write(buffer, 0, buffer.Length);
+
+                // receive packet
+                Array.Clear(buffer, 0, buffer.Length);
+
+                int bytesRead = stream.Read(buffer, 0, buffer.Length);
+                TCP_Properties.Result result = (TCP_Properties.Result)Packet.Deserialize(buffer);
+
+                if (result.result)
+                {
+                    System.Windows.Forms.MessageBox.Show(result.reason, "클라이언트 확인", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                else
+                {
+                    System.Windows.Forms.MessageBox.Show(result.reason, "클라이언트 오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+
+                // close socket
+                stream.Close();
+                tcpClient.Close();
+            }
+            catch (Exception ex)
+            {
+                System.Windows.Forms.MessageBox.Show(ex.Message, "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
 
         // 연결 종료
         public ICommand ClientTerminate => new RelayCommand<object>(clientTerminate, null);

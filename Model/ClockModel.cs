@@ -5,6 +5,7 @@ using System.ComponentModel;
 
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -45,7 +46,7 @@ namespace VewModelSample.Model
         public DateTime Standard
         {
             get { return standard; }
-            set { standard = value; OnPropertyChanged("SetTime"); }
+            set { standard = value; OnPropertyChanged("Standard"); }
         }
 
         private string backgroundFilepath = "images/Background/whiteAndGrayGradient.jpg";
@@ -495,6 +496,8 @@ namespace VewModelSample.Model
             get { return alarmSelectedIndex; }
             set { alarmSelectedIndex = value; OnPropertyChanged("AlarmSelectedIndex"); }
         }
+
+        public List<Thread> threadList = null;
         #endregion
         #region StopWatch ----------------------------------------------------------------------------------
         private String stopWatch = "00:00:00:00";
@@ -590,7 +593,7 @@ namespace VewModelSample.Model
         public String tcp_ChangeSec;
 
         // 타임 포맷 변경
-        public String tcp_TimeFormat;
+        public int tcp_TimeFormat = 0;
 
         // 표준시 변경
         public int tcp_Standard = 0 ;

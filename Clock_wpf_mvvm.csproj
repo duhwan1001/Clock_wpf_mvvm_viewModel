@@ -72,6 +72,7 @@
     <Compile Include="UtilClass\DispatcherService.cs" />
     <Compile Include="ViewModel\BaseUserControlViewModel.cs" />
     <Compile Include="ViewModel\ChangeTimeViewModel.cs" />
+    <Compile Include="ViewModel\ClockFuncViewModel.cs" />
     <Compile Include="ViewModel\ClockViewModel.cs" />
     <Compile Include="Command\RelayCommand.cs" />
     <Compile Include="ViewModel\MainViewModel.cs" />

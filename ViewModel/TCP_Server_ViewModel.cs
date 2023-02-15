@@ -11,6 +11,11 @@ using VewModelSample.Model;
 using VewModelSample.View;
 using VewModelSample.UtilClass;
 using System.Windows.Controls;
+using System.Data.SqlTypes;
+using System.Linq;
+using System.Net.Http;
+using static VewModelSample.Model.ClockModel;
+using System.Collections.ObjectModel;
 
 namespace VewModelSample.ViewModel
 {
@@ -29,16 +34,17 @@ namespace VewModelSample.ViewModel
         // 모델 싱글톤
         private Model.ClockModel clockModel = null;
         private ViewModel.ViewLogViewModel viewLog = null;
+        private ViewModel.AlarmViewModel alarmViewModel = null;
+        private ViewModel.StopwatchViewModel sw = null;
 
         // 생성자
         public TCP_Server_ViewModel()
         {
             clockModel = ClockModel.Instance;
             viewLog = ViewModel.ViewLogViewModel.Instance;
+            alarmViewModel = ViewModel.AlarmViewModel.Instance;
+            sw = ViewModel.StopwatchViewModel.Instance;
         }
-
-        StreamReader streamReader;
-        StreamWriter streamWriter;
 
         // 모델에 선언해줘야 하는 부분
         public String ServerIPAddr
@@ -73,7 +79,7 @@ namespace VewModelSample.ViewModel
         public DateTime Standard
         {
             get { return clockModel.Standard; }
-            set { clockModel.Standard = value; OnPropertyChanged("SetTime"); }
+            set { clockModel.Standard = value; OnPropertyChanged("Standard"); }
         }
         public String StandardChangeViewFormat
         {
@@ -129,6 +135,88 @@ namespace VewModelSample.ViewModel
         }
         #endregion
 
+        #region TimeFormatChange ----------------------------
+        public int TemporaryTimeIndex
+        {
+            get { return clockModel.TemporaryTimeIndex; }
+            set
+            {
+                clockModel.TemporaryTimeIndex = value;
+
+                if (clockModel.TemporaryTimeIndex == 0)
+                {
+                    TemporaryTimeFormat = "tt h:mm:ss";
+                }
+                else if (clockModel.TemporaryTimeIndex == 1)
+                {
+                    TemporaryTimeFormat = "tt hh:mm:ss";
+                }
+                else if (clockModel.TemporaryTimeIndex == 2)
+                {
+                    TemporaryTimeFormat = "H:mm:ss";
+                }
+                else if (clockModel.TemporaryTimeIndex == 3)
+                {
+                    TemporaryTimeFormat = "HH:mm:ss";
+                }
+                ViewTemporaryTime = Standard.ToString(TemporaryTimeFormat);
+                OnPropertyChanged("TemporaryTimeIndex");
+            }
+        }
+
+        public String ViewTemporaryTime
+        {
+            get { return clockModel.ViewTemporaryTime; }
+            set { clockModel.ViewTemporaryTime = value; OnPropertyChanged("ViewTemporaryTime"); }
+        }
+
+        public String TemporaryTimeFormat
+        {
+            get
+            {
+                return clockModel.TemporaryTimeFormat;
+            }
+            set
+            {
+                clockModel.TemporaryTimeFormat = value;
+                OnPropertyChanged("TemporaryTimeText");
+            }
+        }
+
+        public String TimeFormat
+        {
+            get { return clockModel.TimeFormat; }
+            set
+            {
+                clockModel.TimeFormat = value;
+                OnPropertyChanged("SetTimeFormat");
+            }
+        }
+        #endregion
+
+        #region AlarmSet -------------------------------------
+        public ObservableCollection<ClockModel.alarmData> alarmDatas
+        {
+            get
+            {
+                if (clockModel._alarmDatas == null)
+                {
+                    clockModel._alarmDatas = new ObservableCollection<ClockModel.alarmData>();
+                }
+                return clockModel._alarmDatas;
+            }
+            set
+            {
+                clockModel._alarmDatas = value;
+                OnPropertyChanged("AlarmDatas");
+            }
+        }
+        public int AlarmThreadSeq
+        {
+            get { return clockModel.alarmThreadSeq += 1; }
+            //set { clockModel.alarmThreadSeq = value; OnPropertyChanged("AlarmThreadSeq"); }
+        }
+        #endregion
 
         // 연결 시도 버튼에 매핑
         public ICommand TryConnect => new RelayCommand<object>(tryConnect, null);
@@ -138,22 +226,21 @@ namespace VewModelSample.ViewModel
             thread1.IsBackground = true;
             thread1.Start();
         }
-
+        
+        TcpListener tcpListener = null;
         private void connect()
         {
             //TcpListener tcpListener = new TcpListener(IPAddress.Parse(ServerIPAddr), int.Parse(ServerPort));            
-            TcpListener tcpListener = new TcpListener(IPAddress.Any, int.Parse(ServerPort));
+            tcpListener = new TcpListener(IPAddress.Any, int.Parse(ServerPort));
 
             tcpListener.Start();
             // 서버 준비
 
             TcpClient tcpClient = tcpListener.AcceptTcpClient();
             // 클라이언트 연결됨
-            
-            if(MessageBox.Show("어디서 접근했는지 보여주고 수락하지 않는다면 리턴") == MessageBoxResult.Cancel)
-            {
-                return;
-            }
+
+            IPEndPoint ClientIP = tcpClient.Client.RemoteEndPoint as IPEndPoint;
+            string ClientIPStr = ClientIP.Address.ToString();
 
             byte[] buffer = new byte[1024 * 4];
             string data = string.Empty;
@@ -168,7 +255,7 @@ namespace VewModelSample.ViewModel
 
                 while ((bytesRead = stream.Read(buffer, 0, buffer.Length)) != 0)
                 {
-                    AnalyzePacket(stream, buffer);
+                    AnalyzePacket(stream, buffer, ClientIPStr);
                 }
 
                 // Shutdown and end connection
@@ -176,31 +263,162 @@ namespace VewModelSample.ViewModel
                 tcpClient.Close();
             }
         }
-        private void AnalyzePacket(NetworkStream stream, byte[] buffer)
+        private void AnalyzePacket(NetworkStream stream, byte[] buffer, string ClientIP)
         {
             Packet packet = (Packet)Packet.Deserialize(buffer);
 
             if (packet == null)
                 return;
 
+            string func_name = string.Empty;
+            if (packet.packet_Type == (int)PacketType.ChangeTime)
+            {
+                func_name = "시간 변경";
+            }
+            else if (packet.packet_Type == (int)PacketType.ChangeTimeFormat)
+            {
+                func_name = "시간 포맷 변경";
+            }
+            else if (packet.packet_Type == (int)PacketType.ChangeStandard)
+            {
+                func_name = "표준시 변경";
+            }
+            else if (packet.packet_Type == (int)PacketType.SetAlarm)
+            {
+                func_name = "알람 설정";
+            }
+            else if (packet.packet_Type == (int)PacketType.SetStopWatch)
+            {
+                func_name = "스톱워치 설정";
+            }
+            else if (packet.packet_Type == (int)PacketType.ConnTerminate)
+            {
+                func_name = "연결 종료";
+            }
+
+            if (MessageBox.Show("[ " + ClientIP + " ] 에서 [ " + func_name + " ] 을 수정하려 합니다.", "클라이언트 접근", MessageBoxButton.OKCancel, MessageBoxImage.Warning) == MessageBoxResult.Cancel)
+            {
+                tcpListener.Stop();
+                return;
+            }
+
             switch ((int)packet.packet_Type)
             {
                 case (int)PacketType.ChangeTime:
                     {
+                        //// 받은 패킷을 deserialize 시킴
+                        TCP_Properties.ChangeTimeValues ChangeTimeValues = (TCP_Properties.ChangeTimeValues)Packet.Deserialize(buffer);
 
+                        //// 전송할 패킷을 serialize 시킴
+                        TCP_Properties.Result result = new TCP_Properties.Result();
+                        result.packet_Type = (int)PacketType.ChangeTime;
+                        try
+                        {
+
+                            int year = Standard.Year;
+                            int month = Standard.Month;
+                            int day = Standard.Day;
+                            int hour = int.Parse(ChangeTimeValues.Packet_ChangeHour);
+                            int min = int.Parse(ChangeTimeValues.Packet_ChangeMin);
+                            int sec = int.Parse(ChangeTimeValues.Packet_ChangeSec);
+
+                            DateTime timeToUse = new DateTime(year, month, day, hour, min, sec);
+
+                            TimeMode = 1;
+
+                            String now = Standard.ToString(StandardChangeViewFormat);
+
+                            Standard = timeToUse;
+                            String afterChangeTime = timeToUse.ToString(StandardChangeViewFormat);
+
+
+                            String RecordText = ClientIP + "에서 변경 : " + now + "에서 변경한 시간 : " + afterChangeTime;
+
+                            viewLog.AddData("ChangeTime", now, RecordText);
+
+                            MessageBox.Show("시간 설정 완료.", "성공", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                            result.result = true;
+                            result.reason = "시간 변경 성공";
+                            //tcpListener.Stop();
+                        }
+                        catch
+                        {
+                            result.result = false;
+                            result.reason = "시간 변경 실패";
+                        }
+                        finally
+                        {
+                            tcpListener.Stop();
+                            MessageBox.Show("서버가 종료되었습니다.", "서버 종료", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        }
+
+                        Array.Clear(buffer, 0, buffer.Length);
+                        Packet.Serialize(result).CopyTo(buffer, 0);
+                        stream.Write(buffer, 0, buffer.Length);
                     }
                     break;
                 case (int)PacketType.ChangeTimeFormat:
                     {
+                        //// 받은 패킷을 deserialize 시킴
+                        TCP_Properties.ChangeTimeFormatValues CTFIndex = (TCP_Properties.ChangeTimeFormatValues)Packet.Deserialize(buffer);
 
+                        //// 전송할 패킷을 serialize 시킴
+                        TCP_Properties.Result result = new TCP_Properties.Result();
+                        result.packet_Type = (int)PacketType.ChangeTimeFormat;
+                        try
+                        {
+
+                            int TimeIndex = 0;
+                            if(CTFIndex.Packet_TimeFormat == 0)
+                            {
+                                TimeIndex = 0;
+                            }
+                            else if(CTFIndex.Packet_TimeFormat == 1)
+                            {
+                                TimeIndex = 3;
+                            }
+
+                            TemporaryTimeIndex = TimeIndex;
+
+                            String beforeChangeTime = TimeFormat;
+
+                            TimeFormat = TemporaryTimeFormat;
+
+                            String function = "Format Change";
+                            String now = Standard.ToString(StandardChangeViewFormat);
+
+                            String RecordText = ClientIP + "에서 변경 : " + beforeChangeTime + " => " + TimeFormat;
+
+                            viewLog.AddData(function, now, RecordText);
+
+                            MessageBox.Show("선택한 포맷으로 변경 하였습니다.", "성공", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                            result.result = true;
+                            result.reason = "타임포맷 변경 성공";
+                        }
+                        catch
+                        {
+                            result.result = false;
+                            result.reason = "타임포맷 변경 실패";
+                        }
+                        finally
+                        {
+                            tcpListener.Stop();
+                            MessageBox.Show("서버가 종료되었습니다.", "서버 종료", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        }
+
+                        Array.Clear(buffer, 0, buffer.Length);
+                        Packet.Serialize(result).CopyTo(buffer, 0);
+                        stream.Write(buffer, 0, buffer.Length);
                     }
                     break;
                 case (int)PacketType.ChangeStandard:
                     {
-                        //// 받은 패킷을 MemberRegister class 로 deserialize 시킴
+                        //// 받은 패킷을 deserialize 시킴
                         TCP_Properties.ChangeStandardValues standard = (TCP_Properties.ChangeStandardValues)Packet.Deserialize(buffer);
 
-                        //// 전송할 패킷을 LoginResult class 로 serialize 시킴
+                        //// 전송할 패킷을 serialize 시킴
                         TCP_Properties.Result result = new TCP_Properties.Result();
                         result.packet_Type = (int)PacketType.ChangeStandard;
                         try
@@ -226,7 +444,7 @@ namespace VewModelSample.ViewModel
                             }
 
                             Kind = StandardChangeFormat;
-                            String RecordText = beforeKind + "에서 변경한 기준시 : " + Kind;
+                            String RecordText = ClientIP + "에서 변경 : " + beforeKind + "에서 변경한 기준시 : " + Kind;
 
                             viewLog.AddData(function, now, RecordText);
 
@@ -238,6 +456,11 @@ namespace VewModelSample.ViewModel
                             result.result = false;
                             result.reason = "표준시 변경 실패";
                         }
+                        finally
+                        {
+                            tcpListener.Stop();
+                            MessageBox.Show("서버가 종료되었습니다.", "서버 종료", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        }
 
                         Array.Clear(buffer, 0, buffer.Length);
                         Packet.Serialize(result).CopyTo(buffer, 0);
@@ -246,24 +469,127 @@ namespace VewModelSample.ViewModel
                     break;
                 case (int)PacketType.SetAlarm:
                     {
+                        //// 받은 패킷을 deserialize 시킴
+                        TCP_Properties.AddAlarmValues AlarmValues= (TCP_Properties.AddAlarmValues)Packet.Deserialize(buffer);
 
+                        //// 전송할 패킷을 serialize 시킴
+                        TCP_Properties.Result result = new TCP_Properties.Result();
+                        result.packet_Type = (int)PacketType.SetAlarm;
+                        try
+                        {
+                            int hour = int.Parse(AlarmValues.Packet_AlarmHour);
+                            int min = int.Parse(AlarmValues.Packet_AlarmMin);
+                            int sec = 0;
 
-                        //Array.Clear(buffer, 0, buffer.Length);
-                        //Packet.Serialize(mrResult).CopyTo(buffer, 0);
-                        //stream.Write(buffer, 0, buffer.Length);
+                            DateTime SetDateTime = Convert.ToDateTime(Standard);
 
-                        //setLog("");
+                            int year = SetDateTime.Year;
+                            int month = SetDateTime.Month;
+                            int day = SetDateTime.Day;
+
+                            DateTime timeToUse = new DateTime(year, month, day, hour, min, sec);
+
+                            for (int i = 0; i < alarmDatas.Count; i++)
+                            {
+                                if (alarmDatas[i].targetTime.Equals(timeToUse.ToString(StandardChangeViewFormat)))
+                                {
+                                    MessageBox.Show("이미 같은 시각으로 등록된 알람이 있습니다.", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
+                                    result.result = false;
+                                    result.reason = "알람 추가 실패";
+                                    return;
+                                }
+                            }
+
+                            // log
+                            String targetTime = timeToUse.ToString(StandardChangeViewFormat);
+                            String RecordText = "등록한 알람 : " + targetTime;
+
+                            viewLog.AddData("SetAlarm", Standard.ToString(StandardChangeViewFormat), RecordText);
+                            alarmViewModel.AddAlarm(targetTime);
+                            
+                            
+                            alarmViewModel.alarmThread = new Thread(alarmViewModel.waitingAlarm); // 알람 삭제한 뒤에 또 추가하려고 하면 터짐
+                            alarmViewModel.alarmThread.IsBackground = true;
+                            alarmViewModel.alarmThread.Name = (AlarmThreadSeq).ToString();
+
+                            string[] arr = new string[2];
+
+                            arr[0] = alarmViewModel.alarmThread.Name;
+                            arr[1] = timeToUse.ToString(StandardChangeViewFormat);
+
+                            alarmViewModel.alarmThread.Start(arr);
+
+                            alarmViewModel.ThreadList.Add(alarmViewModel.alarmThread);
+
+                            result.result = true;
+                            result.reason = "알람 추가 성공";
+                        }
+                        catch
+                        {
+                            result.result = false;
+                            result.reason = "알람 추가 실패";
+                        }
+                        finally
+                        {
+                            tcpListener.Stop();
+                            MessageBox.Show("서버가 종료되었습니다.", "서버 종료", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        }
+
+                        Array.Clear(buffer, 0, buffer.Length);
+                        Packet.Serialize(result).CopyTo(buffer, 0);
+                        stream.Write(buffer, 0, buffer.Length);
                     }
                     break;
                 case (int)PacketType.SetStopWatch:
                     {
+                        //// 받은 패킷을 deserialize 시킴
+                        TCP_Properties.StopWatchValues stopwatchValues = (TCP_Properties.StopWatchValues)Packet.Deserialize(buffer);
 
+                        //// 전송할 패킷을 serialize 시킴
+                        TCP_Properties.Result result = new TCP_Properties.Result();
+                        result.packet_Type = (int)PacketType.SetStopWatch;
+                        try
+                        {
+                            int stopwatchFlag = stopwatchValues.Packet_StopWatchFlag;
 
-                        //Array.Clear(buffer, 0, buffer.Length);
-                        //Packet.Serialize(mrResult).CopyTo(buffer, 0);
-                        //stream.Write(buffer, 0, buffer.Length);
+                            if (stopwatchFlag == 0)
+                            {
+                                sw.FirstStartSW();
+                                viewLog.AddData("Stopwatch", Standard.ToString(StandardChangeViewFormat), "스톱워치 시작");
+                                result.reason = "스톱워치 시작 성공";
+                            }
+                            else if (stopwatchFlag == 1)
+                            {
+                                sw.PauseSW();
+                                result.reason = "스톱워치 정지 성공";
+                            }
+                            else if (stopwatchFlag == 2)
+                            {
+                                sw.ResetSW();
+                                result.reason = "스톱워치 초기화 성공";
+                            }
+                            else if (stopwatchFlag == 3)
+                            {
+                                sw.AddSwRecord();
+                                result.reason = "스톱워치 기록 성공";
+                            }
 
-                        //setLog("");
+                            result.result = true;
+                        }
+                        catch
+                        {
+                            result.result = false;
+                            result.reason = "스톱워치 제어 실패";
+                        }
+                        finally
+                        {
+                            tcpListener.Stop();
+                            MessageBox.Show("서버가 종료되었습니다.", "서버 종료", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        }
+
+                        Array.Clear(buffer, 0, buffer.Length);
+                        Packet.Serialize(result).CopyTo(buffer, 0);
+                        stream.Write(buffer, 0, buffer.Length);
                     }
                     break;
             }
@@ -273,7 +599,7 @@ namespace VewModelSample.ViewModel
         public ICommand ServerTerminate => new RelayCommand<object>(serverTerminate, null);
         private void serverTerminate(object e)
         {
-            streamWriter.WriteLine(ServerSendData);
+            //streamWriter.WriteLine(ServerSendData);
         }
         public ICommand ServerViewLog => new RelayCommand<object>(serverViewLog, null);
         private void serverViewLog(object e)

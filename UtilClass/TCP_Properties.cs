@@ -19,7 +19,7 @@ namespace VewModelSample.UtilClass
         [Serializable]
         public class ChangeTimeFormatValues : Packet
         {
-            public String Packet_TimeFormat;
+            public int Packet_TimeFormat;
         }
 
         [Serializable]

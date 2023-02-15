@@ -122,23 +122,17 @@ namespace VewModelSample.ViewModel
             {
                 FirstStartSW();
                 stopwatchFlag = 1;
-                SwRightText = "정지";
-                SwLeftButtonTF = true;
                 viewLogViewModel.AddData("Stopwatch", Standard.ToString(StandardChangeViewFormat), "스톱워치 시작");
             }
             else if (stopwatchFlag == 1)
             {
                 PauseSW();
-                SwRightText = "시작";
-                SwLeftText = "초기화";
                 RecordButtonFlag = 1;
                 stopwatchFlag = 2;
             }
             else if (stopwatchFlag == 2)
             {
                 RestartSW();
-                SwRightText = "정지";
-                SwLeftText = "기록";
                 stopwatchFlag = 1;
             }
 
@@ -152,6 +146,9 @@ namespace VewModelSample.ViewModel
             SWThread.IsBackground = true;
             SWThread.Name = nameof(SWThread);
             SWThread.Start();
+
+            SwRightText = "정지";
+            SwLeftButtonTF = true;
         }
 
         public void startStopWatch(Object obj)
@@ -166,11 +163,15 @@ namespace VewModelSample.ViewModel
         public void PauseSW()
         {
             sw.Stop();
+            SwRightText = "시작";
+            SwLeftText = "초기화";
         }
 
         public void RestartSW()
         {
             sw.Start();
+            SwRightText = "정지";
+            SwLeftText = "기록";
         }
         public void ResetSW()
         {

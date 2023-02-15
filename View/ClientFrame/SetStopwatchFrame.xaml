@@ -16,11 +16,14 @@
             <RowDefinition Height="1*"/>
             <RowDefinition Height="42.1854545454546"/>
         </Grid.RowDefinitions>
-        <ComboBox SelectedIndex="{Binding TCP_Standard, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" VerticalAlignment="Center" Width="215">
-            <ComboBoxItem Content="KST(UTC+9)" />
-            <ComboBoxItem Content="UTC(UTC+0)" />
-            <ComboBoxItem Content="EST(UTC-5)" />
-        </ComboBox>
+        <Grid Grid.Column="0">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Orientation="Horizontal">
+                <Button Style="{DynamicResource buttonHover}" Command="{Binding ClientSWStart}" Content="시작" HorizontalAlignment="Center" VerticalAlignment="Center" Width="113"/>
+                <Button Style="{DynamicResource buttonHover}" Command="{Binding ClientSWPause}" Content="정지" HorizontalAlignment="Center" VerticalAlignment="Center" Width="113" Margin="10,0,0,0"/>
+                <Button Style="{DynamicResource buttonHover}" Command="{Binding ClientSWReset}" Content="리셋" HorizontalAlignment="Center" VerticalAlignment="Center" Width="113" Margin="10,0,0,0"/>
+                <Button Style="{DynamicResource buttonHover}" Command="{Binding ClientSWRecord}" Content="기록" HorizontalAlignment="Center" VerticalAlignment="Center" Width="113" Margin="10,0,0,0"/>
+            </StackPanel>            
+        </Grid>
         <Grid Grid.Column="1" Grid.Row="1" Panel.ZIndex="1">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                 <Button Style="{DynamicResource buttonHover}" Command="{Binding SendStandard}" Content="전송" HorizontalAlignment="Center" VerticalAlignment="Center" Width="113"/>

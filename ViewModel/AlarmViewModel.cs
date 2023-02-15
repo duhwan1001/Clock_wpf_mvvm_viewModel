@@ -23,6 +23,13 @@ namespace VewModelSample.ViewModel
                 PropertyChanged(this, new PropertyChangedEventArgs(name));
             }
         }
+
+        private static AlarmViewModel _instance = new AlarmViewModel();
+        public static AlarmViewModel Instance
+        {
+            get { return _instance; }
+        }
+
         private bool IsNumeric(string source)
         {
             Regex regex = new Regex("[^0-9.-]+");
@@ -145,9 +152,26 @@ namespace VewModelSample.ViewModel
             //set { clockModel.alarmThreadSeq = value; OnPropertyChanged("AlarmThreadSeq"); }
         }
 
+        public List<Thread> ThreadList
+        {
+            get
+            {
+                if (clockModel.threadList == null)
+                {
+                    clockModel.threadList = new List<Thread>();
+                }
+                return clockModel.threadList;
+            }
+            set
+            {
+                clockModel.threadList = value;
+                OnPropertyChanged("ThreadList");
+            }
+        }
+
         // 알람 추가 버튼
-        Thread alarmThread = null;
-        List<Thread> threadList = new List<Thread>();
+        public Thread alarmThread = null;
+        
         public ICommand AddAlarmConfirm => new RelayCommand<object>(addAlarmConfirm, null);
         private void addAlarmConfirm(object e)
         {
@@ -235,7 +259,7 @@ namespace VewModelSample.ViewModel
 
             alarmThread.Start(arr);
 
-            threadList.Add(alarmThread);
+            ThreadList.Add(alarmThread);
 
             MessageBox.Show("알람이 추가 되었습니다.", "성공", MessageBoxButton.OK, MessageBoxImage.Information);
         }
@@ -269,8 +293,8 @@ namespace VewModelSample.ViewModel
                 if (index > -1 && index < alarmDatas.Count)
                 {
                     alarmDatas.RemoveAt(index);
-                    threadList[index].Abort();
-                    threadList.RemoveAt(index);
+                    ThreadList[index].Abort();
+                    ThreadList.RemoveAt(index);
                 }
                 MessageBox.Show("선택한 알람을 삭제하였습니다.", "성공", MessageBoxButton.OK, MessageBoxImage.Information);
             }
