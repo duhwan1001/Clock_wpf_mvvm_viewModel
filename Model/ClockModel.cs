@@ -565,11 +565,23 @@ namespace VewModelSample.Model
         public String serverPort = "5000";
 
         public String serverSendData;
-        
+
+        public String serverButtonText = "서버 시작";
+
         // 버튼 비활성화 활성화 true/false
-        public Boolean serverButtonTF = false;
+        public Boolean serverButtonTF = true;
         // 텍스트 박스 활성화 true/false
         public Boolean serverTextBoxTF = true;
+
+        public class serverDataGrid
+        {
+            public int dataGridSequence { get; set; }
+            public String dataGridFunction { get; set; }
+            public String dataGridAddedTime { get; set; }
+            public String dataGridSimpleRecordText { get; set; }
+        }
+
+        public ObservableCollection<ClockModel.serverDataGrid> _serverLogDatas = null;
 
         // Client ------------------------
 

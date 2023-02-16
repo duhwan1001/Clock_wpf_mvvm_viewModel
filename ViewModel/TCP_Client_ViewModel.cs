@@ -462,7 +462,7 @@ namespace VewModelSample.ViewModel
                 // receive packet
                 Array.Clear(buffer, 0, buffer.Length);
 
-                int bytesRead = stream.Read(buffer, 0, buffer.Length);
+                int bytesRead = stream.Read(buffer, 0, buffer.Length);  
                 TCP_Properties.Result result = (TCP_Properties.Result)Packet.Deserialize(buffer);
 
                 if (result.result)

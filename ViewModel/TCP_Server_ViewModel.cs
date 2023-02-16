@@ -16,6 +16,7 @@ using System.Linq;
 using System.Net.Http;
 using static VewModelSample.Model.ClockModel;
 using System.Collections.ObjectModel;
+using System.Windows.Threading;
 
 namespace VewModelSample.ViewModel
 {
@@ -30,6 +31,8 @@ namespace VewModelSample.ViewModel
                 PropertyChanged(this, new PropertyChangedEventArgs(name));
             }
         }
+
+        static readonly object lck = new Object();
 
         // 모델 싱글톤
         private Model.ClockModel clockModel = null;
@@ -72,6 +75,48 @@ namespace VewModelSample.ViewModel
         {
             get { return clockModel.serverTextBoxTF; }
             set { clockModel.serverTextBoxTF = value; OnPropertyChanged("ServerTextBoxTF"); }
+        }
+
+        public String ServerButtonText
+        {
+            get { return clockModel.serverButtonText; }
+            set { clockModel.serverButtonText = value; OnPropertyChanged("ServerButtonText"); }
+        }
+
+        public ObservableCollection<ClockModel.serverDataGrid> ServerLogDatas
+        {
+            get
+            {
+                if (clockModel._serverLogDatas == null)
+                {
+                    clockModel._serverLogDatas = new ObservableCollection<ClockModel.serverDataGrid>();
+                }
+                return clockModel._serverLogDatas;
+            }
+            set
+            {
+                clockModel._serverLogDatas = value;
+                OnPropertyChanged("ServerLogDatas");
+            }
+        }
+
+        public void AddServerLog(String function, String AddedTime, String RecordText)
+        {
+            ClockModel.serverDataGrid serverDataGrid = new ClockModel.serverDataGrid();
+            serverDataGrid.dataGridSequence = LogSequence;
+            serverDataGrid.dataGridFunction = function;
+            serverDataGrid.dataGridAddedTime = AddedTime;
+            serverDataGrid.dataGridSimpleRecordText = RecordText;
+
+            DispatcherService.Invoke(() =>
+            {
+                ServerLogDatas.Add(serverDataGrid);           
+            });
+        }
+
+        public int LogSequence
+        {
+            get { return ServerLogDatas.Count + 1; }
         }
         // 모델 선언 End
 
@@ -224,19 +269,34 @@ namespace VewModelSample.ViewModel
         {
             Thread thread1 = new Thread(connect);
             thread1.IsBackground = true;
+            thread1.Name = nameof(connect);
             thread1.Start();
+            MessageBox.Show("서버가 시작되었습니다.", "서버 시작", MessageBoxButton.OK, MessageBoxImage.Warning);
+            ServerButtonText = "서버 실행 중";
+            ServerButtonTF = false;
         }
         
         TcpListener tcpListener = null;
+        TcpClient tcpClient = null;
+        NetworkStream stream = null;
         private void connect()
         {
+            viewLog.AddData("Server", Standard.ToString(StandardChangeViewFormat), "Server Start");
+            AddServerLog("Server", Standard.ToString(StandardChangeViewFormat), "Server Start");
             //TcpListener tcpListener = new TcpListener(IPAddress.Parse(ServerIPAddr), int.Parse(ServerPort));            
             tcpListener = new TcpListener(IPAddress.Any, int.Parse(ServerPort));
 
             tcpListener.Start();
             // 서버 준비
-
-            TcpClient tcpClient = tcpListener.AcceptTcpClient();
+            try
+            {
+                tcpClient = tcpListener.AcceptTcpClient();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(" " + ex,"Error");
+                return;
+            }
             // 클라이언트 연결됨
 
             IPEndPoint ClientIP = tcpClient.Client.RemoteEndPoint as IPEndPoint;
@@ -249,13 +309,15 @@ namespace VewModelSample.ViewModel
             {
                 data = string.Empty;
 
-                NetworkStream stream = tcpClient.GetStream();
+                stream = tcpClient.GetStream();
 
                 int bytesRead = 0;
 
                 while ((bytesRead = stream.Read(buffer, 0, buffer.Length)) != 0)
                 {
+                    
                     AnalyzePacket(stream, buffer, ClientIPStr);
+                    
                 }
 
                 // Shutdown and end connection
@@ -331,26 +393,33 @@ namespace VewModelSample.ViewModel
                             Standard = timeToUse;
                             String afterChangeTime = timeToUse.ToString(StandardChangeViewFormat);
 
-
                             String RecordText = ClientIP + "에서 변경 : " + now + "에서 변경한 시간 : " + afterChangeTime;
 
                             viewLog.AddData("ChangeTime", now, RecordText);
-
-                            MessageBox.Show("시간 설정 완료.", "성공", MessageBoxButton.OK, MessageBoxImage.Information);
+                            //AddServerLog("ChangeTime", now, RecordText);
 
                             result.result = true;
                             result.reason = "시간 변경 성공";
+
+                            MessageBox.Show("시간 설정 완료.", "성공", MessageBoxButton.OK, MessageBoxImage.Information);
                             //tcpListener.Stop();
                         }
-                        catch
+                        catch(Exception ex)
                         {
                             result.result = false;
                             result.reason = "시간 변경 실패";
+                            viewLog.AddData("ChangeTime", Standard.ToString(StandardChangeViewFormat), ClientIP + "에서 시간 변경 실패");
+                            //AddServerLog("ChangeTime", Standard.ToString(StandardChangeViewFormat), ClientIP + "에서 시간 변경 실패");
+                            MessageBox.Show("" + ex, "error");
                         }
                         finally
                         {
                             tcpListener.Stop();
                             MessageBox.Show("서버가 종료되었습니다.", "서버 종료", MessageBoxButton.OK, MessageBoxImage.Warning);
+                            viewLog.AddData("Server", Standard.ToString(StandardChangeViewFormat), "Server Terminate");
+                            //AddServerLog("Server", Standard.ToString(StandardChangeViewFormat), "Server Terminate");
+                            ServerButtonText = "서버 시작";
+                            ServerButtonTF = true;
                         }
 
                         Array.Clear(buffer, 0, buffer.Length);
@@ -390,6 +459,7 @@ namespace VewModelSample.ViewModel
 
                             String RecordText = ClientIP + "에서 변경 : " + beforeChangeTime + " => " + TimeFormat;
 
+                            //AddServerLog(function, now, RecordText);
                             viewLog.AddData(function, now, RecordText);
 
                             MessageBox.Show("선택한 포맷으로 변경 하였습니다.", "성공", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -401,11 +471,17 @@ namespace VewModelSample.ViewModel
                         {
                             result.result = false;
                             result.reason = "타임포맷 변경 실패";
+                            viewLog.AddData("ChangeTimeFormat", Standard.ToString(StandardChangeViewFormat), ClientIP + "에서 타임포맷 변경 실패");
+                            //AddServerLog("ChangeTimeFormat", Standard.ToString(StandardChangeViewFormat), ClientIP + "에서 타임포맷 변경 실패");
                         }
                         finally
                         {
                             tcpListener.Stop();
                             MessageBox.Show("서버가 종료되었습니다.", "서버 종료", MessageBoxButton.OK, MessageBoxImage.Warning);
+                            viewLog.AddData("Server", Standard.ToString(StandardChangeViewFormat), "Server Terminate");
+                            //AddServerLog("Server", Standard.ToString(StandardChangeViewFormat), "Server Terminate");
+                            ServerButtonText = "서버 시작";
+                            ServerButtonTF = true;
                         }
 
                         Array.Clear(buffer, 0, buffer.Length);
@@ -447,6 +523,7 @@ namespace VewModelSample.ViewModel
                             String RecordText = ClientIP + "에서 변경 : " + beforeKind + "에서 변경한 기준시 : " + Kind;
 
                             viewLog.AddData(function, now, RecordText);
+                            //AddServerLog(function, now, RecordText);
 
                             result.result = true;
                             result.reason = "표준시 변경 성공";
@@ -455,11 +532,17 @@ namespace VewModelSample.ViewModel
                         {
                             result.result = false;
                             result.reason = "표준시 변경 실패";
+                            viewLog.AddData("ChangeStandard", Standard.ToString(StandardChangeViewFormat), ClientIP + "에서 표준시 변경 실패");
+                            //AddServerLog("ChangeStandard", Standard.ToString(StandardChangeViewFormat), ClientIP + "에서 표준시 변경 실패");
                         }
                         finally
                         {
                             tcpListener.Stop();
                             MessageBox.Show("서버가 종료되었습니다.", "서버 종료", MessageBoxButton.OK, MessageBoxImage.Warning);
+                            viewLog.AddData("Server", Standard.ToString(StandardChangeViewFormat), "Server Terminate");
+                            //AddServerLog("Server", Standard.ToString(StandardChangeViewFormat), "Server Terminate");
+                            ServerButtonText = "서버 시작";
+                            ServerButtonTF = true;
                         }
 
                         Array.Clear(buffer, 0, buffer.Length);
@@ -502,7 +585,9 @@ namespace VewModelSample.ViewModel
 
                             // log
                             String targetTime = timeToUse.ToString(StandardChangeViewFormat);
-                            String RecordText = "등록한 알람 : " + targetTime;
+
+                            String RecordText = ClientIP + "에서 변경 : " + "등록한 알람 => " + targetTime;
+                            //AddServerLog("SetAlarm", Standard.ToString(StandardChangeViewFormat), RecordText);
 
                             viewLog.AddData("SetAlarm", Standard.ToString(StandardChangeViewFormat), RecordText);
                             alarmViewModel.AddAlarm(targetTime);
@@ -528,11 +613,17 @@ namespace VewModelSample.ViewModel
                         {
                             result.result = false;
                             result.reason = "알람 추가 실패";
+                            viewLog.AddData("AddAlarm", Standard.ToString(StandardChangeViewFormat), ClientIP + "에서 알람 추가 실패");
+                            //AddServerLog("AddAlarm", Standard.ToString(StandardChangeViewFormat), ClientIP + "에서 알람 추가 실패");
                         }
                         finally
                         {
                             tcpListener.Stop();
                             MessageBox.Show("서버가 종료되었습니다.", "서버 종료", MessageBoxButton.OK, MessageBoxImage.Warning);
+                            viewLog.AddData("Server", Standard.ToString(StandardChangeViewFormat), "Server Terminate");
+                            //AddServerLog("Server", Standard.ToString(StandardChangeViewFormat), "Server Terminate");
+                            ServerButtonText = "서버 시작";
+                            ServerButtonTF = true;
                         }
 
                         Array.Clear(buffer, 0, buffer.Length);
@@ -556,21 +647,25 @@ namespace VewModelSample.ViewModel
                             {
                                 sw.FirstStartSW();
                                 viewLog.AddData("Stopwatch", Standard.ToString(StandardChangeViewFormat), "스톱워치 시작");
+                                //AddServerLog("StopWatch", Standard.ToString(StandardChangeViewFormat), "스톱워치 시작 성공");
                                 result.reason = "스톱워치 시작 성공";
                             }
                             else if (stopwatchFlag == 1)
                             {
                                 sw.PauseSW();
+                                //AddServerLog("StopWatch", Standard.ToString(StandardChangeViewFormat), "스톱워치 정지 성공");
                                 result.reason = "스톱워치 정지 성공";
                             }
                             else if (stopwatchFlag == 2)
                             {
                                 sw.ResetSW();
+                                //AddServerLog("StopWatch", Standard.ToString(StandardChangeViewFormat), "스톱워치 초기화 성공");
                                 result.reason = "스톱워치 초기화 성공";
                             }
                             else if (stopwatchFlag == 3)
                             {
                                 sw.AddSwRecord();
+                                //AddServerLog("StopWatch", Standard.ToString(StandardChangeViewFormat), "스톱워치 기록 성공");
                                 result.reason = "스톱워치 기록 성공";
                             }
 
@@ -580,11 +675,17 @@ namespace VewModelSample.ViewModel
                         {
                             result.result = false;
                             result.reason = "스톱워치 제어 실패";
+                            viewLog.AddData("StopWatch", Standard.ToString(StandardChangeViewFormat), ClientIP + "에서 스톱워치 제어 실패");
+                            //AddServerLog("StopWatch", Standard.ToString(StandardChangeViewFormat), ClientIP + "에서 스톱워치 제어 실패");
                         }
                         finally
                         {
                             tcpListener.Stop();
                             MessageBox.Show("서버가 종료되었습니다.", "서버 종료", MessageBoxButton.OK, MessageBoxImage.Warning);
+                            viewLog.AddData("Server", Standard.ToString(StandardChangeViewFormat), "Server Terminate");
+                            //AddServerLog("Server", Standard.ToString(StandardChangeViewFormat), "Server Terminate");
+                            ServerButtonText = "서버 시작";
+                            ServerButtonTF = true;
                         }
 
                         Array.Clear(buffer, 0, buffer.Length);
@@ -599,7 +700,20 @@ namespace VewModelSample.ViewModel
         public ICommand ServerTerminate => new RelayCommand<object>(serverTerminate, null);
         private void serverTerminate(object e)
         {
-            //streamWriter.WriteLine(ServerSendData);
+            tcpListener.Stop();
+            if(tcpClient != null)
+            {
+                tcpClient.Close();
+            }
+            if(stream != null)
+            {
+                stream.Close();
+            }
+            MessageBox.Show("서버가 종료되었습니다.", "서버 종료", MessageBoxButton.OK, MessageBoxImage.Warning);
+            viewLog.AddData("Server", Standard.ToString(StandardChangeViewFormat), "Server Terminate");
+            //AddServerLog("Server", Standard.ToString(StandardChangeViewFormat), "Server Terminate");
+            ServerButtonText = "서버 시작";
+            ServerButtonTF = true;
         }
         public ICommand ServerViewLog => new RelayCommand<object>(serverViewLog, null);
         private void serverViewLog(object e)

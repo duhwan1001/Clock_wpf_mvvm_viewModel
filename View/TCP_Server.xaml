@@ -50,7 +50,7 @@
                 </Grid>
             </Grid>
             <Grid Grid.Row="1">
-                <DataGrid ItemsSource="{Binding Path=logDatas, Mode=TwoWay, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=True}" AutoGenerateColumns="False" CanUserAddRows="False">
+                <DataGrid ItemsSource="{Binding Path=ServerLogDatas, Mode=TwoWay, NotifyOnSourceUpdated=True, NotifyOnTargetUpdated=True}" AutoGenerateColumns="False" CanUserAddRows="False">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Sequence" MinWidth="10" Width="Auto" Binding="{Binding Path=dataGridSequence}"></DataGridTextColumn>
                         <DataGridTextColumn Header="Function" MinWidth="10" Width="Auto" Binding="{Binding Path=dataGridFunction}"></DataGridTextColumn>
@@ -63,7 +63,7 @@
         <GroupBox Style="{DynamicResource BorderThin}" Grid.Column="1" Grid.Row="0" BorderThickness="3" Header="기능" BorderBrush="Black"/>
         <Grid Grid.Column="1">
             <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Width="317">
-                <Button Style="{DynamicResource buttonHover}" Command="{Binding TryConnect}" Content="서버 열기" Margin="15" Height="30"/>
+                <Button IsEnabled="{Binding ServerButtonTF}" Style="{DynamicResource buttonHover}" Command="{Binding TryConnect}" Content="{Binding ServerButtonText}" Margin="15" Height="30"/>
                 <Button Style="{DynamicResource buttonHover}" Command="{Binding ServerTerminate}" Content="서버 종료" Margin="15" Height="30"/>
                 <Button Style="{DynamicResource buttonHover}" Command="{Binding ServerViewLog}" Content="로그" Margin="15" Height="30"/>
             </StackPanel>

@@ -66,5 +66,6 @@ namespace VewModelSample.ViewModel
             logDatas.Add(dataGrid);
         }
 
+
     }
 }
