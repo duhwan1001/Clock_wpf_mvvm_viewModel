@@ -15,6 +15,8 @@ using VewModelSample.ViewModel.Command;
 using VewModelSample.View;
 using VewModelSample.UtilClass;
 using System.Windows.Forms;
+using System.Text.RegularExpressions;
+using System.Collections.ObjectModel;
 
 namespace VewModelSample.ViewModel
 {
@@ -136,6 +138,54 @@ namespace VewModelSample.ViewModel
         }
         // 모델 선언 end
 
+        public DateTime Standard
+        {
+            get { return clockModel.Standard; }
+            set { clockModel.Standard = value; OnPropertyChanged("Standard"); }
+        }
+
+        public String StandardChangeViewFormat
+        {
+            get { return clockModel.StandardChangeViewFormat; }
+            set { clockModel.StandardChangeViewFormat = value; OnPropertyChanged("StandardChangeViewFormat"); }
+        }
+
+        public int LogSequence
+        {
+            get { return ClientLogDatas.Count + 1; }
+        }
+
+        public ObservableCollection<ClockModel.clientDataGrid> ClientLogDatas
+        {
+            get
+            {
+                if (clockModel._clientLogDatas == null)
+                {
+                    clockModel._clientLogDatas = new ObservableCollection<ClockModel.clientDataGrid>();
+                }
+                return clockModel._clientLogDatas;
+            }
+            set
+            {
+                clockModel._clientLogDatas = value;
+                OnPropertyChanged("ClientLogDatas");
+            }
+        }
+
+        public void AddClientLog(String function, String AddedTime, String RecordText)
+        {
+            ClockModel.clientDataGrid clientDataGrid = new ClockModel.clientDataGrid();
+            clientDataGrid.dataGridSequence = LogSequence;
+            clientDataGrid.dataGridFunction = function;
+            clientDataGrid.dataGridAddedTime = AddedTime;
+            clientDataGrid.dataGridSimpleRecordText = RecordText;
+
+            DispatcherService.BeginInvoke((Action)delegate // <--- HERE
+            {
+                ClientLogDatas.Add(clientDataGrid);
+            });
+        }
+
         // 연결 시도 버튼에 매핑
         public ICommand TryConnect => new RelayCommand<object>(tryConnect, null);
         private void tryConnect(object e)
@@ -178,9 +228,40 @@ namespace VewModelSample.ViewModel
             ClientFrameBind = uri;
         }
 
+        private bool IsNumeric(string source)
+        {
+            Regex regex = new Regex("[^0-9.-]+");
+
+            return !regex.IsMatch(source);
+        }
+
         public ICommand SendChangeTime => new RelayCommand<object>(sendChangeTime, null);
         private void sendChangeTime(object e)
         {
+            if (TCP_ChangeHour == "" || TCP_ChangeMin == "" || TCP_ChangeSec == "")
+            {
+                System.Windows.MessageBox.Show("시간을 입력하세요", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            if (IsNumeric(TCP_ChangeHour) == false || IsNumeric(TCP_ChangeMin) == false || IsNumeric(TCP_ChangeSec) == false)
+            {
+                System.Windows.MessageBox.Show("숫자만 입력 가능합니다.", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            if (int.Parse(TCP_ChangeHour) < 0 || int.Parse(TCP_ChangeMin) < 0 || int.Parse(TCP_ChangeSec) < 0)
+            {
+                System.Windows.MessageBox.Show("양수를 입력하세요.", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            if (int.Parse(TCP_ChangeHour) > 12 || int.Parse(TCP_ChangeMin) > 60 || int.Parse(TCP_ChangeSec) > 60)
+            {
+                System.Windows.MessageBox.Show("정확한 시간을 입력하세요", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
             try
             {
                 byte[] buffer = new byte[1024 * 4];
@@ -212,10 +293,12 @@ namespace VewModelSample.ViewModel
                 if (result.result)
                 {
                     System.Windows.Forms.MessageBox.Show(result.reason, "클라이언트 확인", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    AddClientLog("ChangeTime", Standard.ToString(StandardChangeViewFormat), ClientIPAddr + "의 시간 변경 완료 =>" + TCP_ChangeHour + "시" + TCP_ChangeMin + "분" + TCP_ChangeSec + "초");
                 }
                 else
                 {
                     System.Windows.Forms.MessageBox.Show(result.reason, "클라이언트 오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    AddClientLog("ChangeTime", Standard.ToString(StandardChangeViewFormat), "에러 발생");
                 }
 
                 // close socket
@@ -271,10 +354,12 @@ namespace VewModelSample.ViewModel
                 if (result.result)
                 {
                     System.Windows.Forms.MessageBox.Show(result.reason, "클라이언트 확인", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    AddClientLog("ChangeTimeFormat", Standard.ToString(StandardChangeViewFormat), ClientIPAddr + "의 타임 포맷 변경 완료");
                 }
                 else
                 {
                     System.Windows.Forms.MessageBox.Show(result.reason, "클라이언트 오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    AddClientLog("ChangeTimeFormat", Standard.ToString(StandardChangeViewFormat), "에러 발생");
                 }
 
                 // close socket
@@ -329,10 +414,12 @@ namespace VewModelSample.ViewModel
                 if (result.result)
                 {
                     System.Windows.Forms.MessageBox.Show(result.reason, "클라이언트 확인", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    AddClientLog("ChangeStandard", Standard.ToString(StandardChangeViewFormat), ClientIPAddr + "의 표준시 변경 완료");
                 }
                 else
                 {
                     System.Windows.Forms.MessageBox.Show(result.reason, "클라이언트 오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    AddClientLog("ChangeStandard", Standard.ToString(StandardChangeViewFormat), "에러 발생");
                 }
 
                 // close socket
@@ -359,6 +446,29 @@ namespace VewModelSample.ViewModel
         public ICommand SendAlarm => new RelayCommand<object>(sendAlarm, null);
         private void sendAlarm(object e)
         {
+            if (TCP_AlarmHour == "" || TCP_AlarmMin == "")
+            {
+                System.Windows.MessageBox.Show("시간을 입력하세요", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            if (IsNumeric(TCP_AlarmHour) == false || IsNumeric(TCP_AlarmMin) == false)
+            {
+                System.Windows.MessageBox.Show("숫자만 입력 가능합니다.", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            if (int.Parse(TCP_AlarmHour) < 0 || int.Parse(TCP_AlarmMin) < 0)
+            {
+                System.Windows.MessageBox.Show("양수를 입력하세요.", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            if (int.Parse(TCP_AlarmHour) > 12 || int.Parse(TCP_AlarmMin) > 60)
+            {
+                System.Windows.MessageBox.Show("정확한 시간을 입력하세요", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
             try
             {
                 byte[] buffer = new byte[1024 * 4];
@@ -389,10 +499,12 @@ namespace VewModelSample.ViewModel
                 if (result.result)
                 {
                     System.Windows.Forms.MessageBox.Show(result.reason, "클라이언트 확인", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    AddClientLog("AddAlarm", Standard.ToString(StandardChangeViewFormat), ClientIPAddr + "의 알람 추가 완료 => " + TCP_AlarmHour + "시" + TCP_AlarmMin + "분");
                 }
                 else
                 {
                     System.Windows.Forms.MessageBox.Show(result.reason, "클라이언트 오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    AddClientLog("AddAlarm", Standard.ToString(StandardChangeViewFormat), "에러 발생");
                 }
 
                 // close socket
@@ -468,10 +580,12 @@ namespace VewModelSample.ViewModel
                 if (result.result)
                 {
                     System.Windows.Forms.MessageBox.Show(result.reason, "클라이언트 확인", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    AddClientLog("StopWatch", Standard.ToString(StandardChangeViewFormat), "스톱워치 제어 성공");
                 }
                 else
                 {
                     System.Windows.Forms.MessageBox.Show(result.reason, "클라이언트 오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    AddClientLog("StopWatch", Standard.ToString(StandardChangeViewFormat), "에러 발생");
                 }
 
                 // close socket

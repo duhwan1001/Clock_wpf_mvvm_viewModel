@@ -9,8 +9,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using VewModelSample.Model;
+using VewModelSample.UtilClass;
 using VewModelSample.ViewModel.Command;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.ToolTip;
+using static VewModelSample.Model.ClockModel;
 
 namespace VewModelSample.ViewModel
 {
@@ -109,7 +111,10 @@ namespace VewModelSample.ViewModel
             swData.stopWatchSeq = StopWatchSeq;
             swData.saveTime = StopWatch;
 
-            swDatas.Add(swData);
+            DispatcherService.BeginInvoke((Action)delegate // <--- HERE
+            {
+                swDatas.Add(swData);
+            });
         }
 
         public ICommand StartStopWatch => new RelayCommand<object>(setStopWatch, null);
@@ -180,7 +185,10 @@ namespace VewModelSample.ViewModel
             SwLeftButtonTF = false;
             stopwatchFlag = 0;
             RecordButtonFlag = 0;
-            swDatas.Clear();
+            DispatcherService.BeginInvoke((Action)delegate // <--- HERE
+            {
+                swDatas.Clear();
+            });
             SWThread.Abort();
         }
 

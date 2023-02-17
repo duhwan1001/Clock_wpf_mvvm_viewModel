@@ -23,8 +23,8 @@
         <Grid Grid.Column="0">
             <local:ClockFunc VerticalAlignment="Center"/>
             <Button Style="{DynamicResource buttonHover}" Command="{Binding ChangeBackground}" Content="배경변경" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="50" Height="20"/>
-            <Button Style="{DynamicResource buttonHover}" Command="{Binding TCPServer}" Content="Server" HorizontalAlignment="Left" Margin="65,10,0,0" VerticalAlignment="Top" Width="50" Height="20"/>
-            <Button Style="{DynamicResource buttonHover}" Command="{Binding TCPClient}" Content="Client" HorizontalAlignment="Left" Margin="120,10,0,0" VerticalAlignment="Top" Width="50" Height="20"/>
+            <Button Style="{DynamicResource buttonHover}" Command="{Binding TCPServer}" Content="Server" HorizontalAlignment="Left" Margin="10,35,0,0" VerticalAlignment="Top" Width="50" Height="20"/>
+            <Button Style="{DynamicResource buttonHover}" Command="{Binding TCPClient}" Content="Client" HorizontalAlignment="Left" Margin="10,60,0,0" VerticalAlignment="Top" Width="50" Height="20"/>
         </Grid>
         <Grid Grid.Column="1">
             <local:BaseUserControl VerticalAlignment="Center"/>

@@ -18,5 +18,14 @@ namespace VewModelSample.UtilClass
             else
                 dispatchObject.Invoke(action);
         }
+
+        public static void BeginInvoke(Action action)
+        {
+            Dispatcher dispatchObject = Application.Current != null ? Application.Current.Dispatcher : null;
+            if (dispatchObject == null || dispatchObject.CheckAccess())
+                action();
+            else
+                dispatchObject.BeginInvoke(action);
+        }
     }
 }

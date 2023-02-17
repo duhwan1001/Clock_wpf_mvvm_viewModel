@@ -42,19 +42,7 @@
                         </StackPanel>
                     </StackPanel>
                 </Grid>
-                <!--<Grid Grid.Row="1">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="1*"/>
-                        <ColumnDefinition Width="2*"/>
-                        <ColumnDefinition Width="1*"/>
-                    </Grid.ColumnDefinitions>
-                    <Grid Grid.Column="1">
-                        <Button Style="{DynamicResource buttonHover}" Command="{Binding TryConnect}" Content="연결 시도"/>
-                    </Grid>
-                </Grid>-->
-                    
-                </Grid>
-            <!--<GroupBox Style="{DynamicResource BorderThin}" Grid.Column="0" Grid.Row="1" BorderThickness="3" Panel.ZIndex="1" Header="설정값 입력" BorderBrush="Black"/>-->
+            </Grid>
             <Grid Grid.Row="1">
                  <Frame Source="{Binding ClientFrameBind}"/>
             </Grid>
@@ -67,7 +55,6 @@
                 <Button Style="{DynamicResource buttonHover}" Command="{Binding ClientStandardChange}" Content="표준시 변경" Margin="15,15,15,0" Height="30"/>
                 <Button Style="{DynamicResource buttonHover}" Command="{Binding ClientSetAlarm}" Content="알람 설정" Margin="15,15,15,0" Height="30"/>
                 <Button Style="{DynamicResource buttonHover}" Command="{Binding ClientStopwatch}" Content="스톱 워치 설정" Margin="15,15,15,0" Height="30"/>
-                <Button Style="{DynamicResource buttonHover}" Command="{Binding ClientTerminate}" Content="연결 종료" Margin="15,15,15,0" Height="30"/>
                 <Button Style="{DynamicResource buttonHover}" Command="{Binding ClientViewLog}" Content="로그" Margin="15,15,15,0" Height="30"/>
             </StackPanel>
         </Grid>

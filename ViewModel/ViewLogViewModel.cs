@@ -6,6 +6,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using VewModelSample.Model;
+using static VewModelSample.Model.ClockModel;
+using VewModelSample.UtilClass;
 
 namespace VewModelSample.ViewModel
 {
@@ -55,6 +57,40 @@ namespace VewModelSample.ViewModel
             get { return logDatas.Count + 1; }
         }
 
+        public ObservableCollection<ClockModel.clientDataGrid> ClientLogDatas
+        {
+            get
+            {
+                if (clockModel._clientLogDatas == null)
+                {
+                    clockModel._clientLogDatas = new ObservableCollection<ClockModel.clientDataGrid>();
+                }
+                return clockModel._clientLogDatas;
+            }
+            set
+            {
+                clockModel._clientLogDatas = value;
+                OnPropertyChanged("ClientLogDatas");
+            }
+        }
+
+        public ObservableCollection<ClockModel.serverDataGrid> ServerLogDatas
+        {
+            get
+            {
+                if (clockModel._serverLogDatas == null)
+                {
+                    clockModel._serverLogDatas = new ObservableCollection<ClockModel.serverDataGrid>();
+                }
+                return clockModel._serverLogDatas;
+            }
+            set
+            {
+                clockModel._serverLogDatas = value;
+                OnPropertyChanged("ServerLogDatas");
+            }
+        }
+
         public void AddData(String function, String AddedTime, String RecordText)
         {
             ClockModel.dataGridData dataGrid = new ClockModel.dataGridData();
@@ -63,7 +99,10 @@ namespace VewModelSample.ViewModel
             dataGrid.dataGridAddedTime = AddedTime;
             dataGrid.dataGridSimpleRecordText = RecordText;
 
-            logDatas.Add(dataGrid);
+            DispatcherService.BeginInvoke((Action)delegate // <--- HERE
+            {
+                logDatas.Add(dataGrid);
+            });
         }
 
 

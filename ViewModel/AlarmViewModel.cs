@@ -9,6 +9,7 @@ using VewModelSample.ViewModel.Command;
 using System.Windows;
 using VewModelSample.UtilClass;
 using System.Text.RegularExpressions;
+using static VewModelSample.Model.ClockModel;
 
 namespace VewModelSample.ViewModel
 {
@@ -76,7 +77,10 @@ namespace VewModelSample.ViewModel
             alarmGrid.alarmSequence = AlarmSequence + 1;
             alarmGrid.targetTime = targetTime;
 
-            alarmDatas.Add(alarmGrid);
+            DispatcherService.BeginInvoke((Action)delegate // <--- HERE
+            {
+                alarmDatas.Add(alarmGrid);
+            });
         }
         public String BackgroundFilepath
         {

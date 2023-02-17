@@ -561,7 +561,7 @@ namespace VewModelSample.Model
 
         // Server ------------------------
 
-        public String serverIpAddr = "192.168.35.236";
+        public String serverIpAddr = "";
         public String serverPort = "5000";
 
         public String serverSendData;
@@ -585,7 +585,7 @@ namespace VewModelSample.Model
 
         // Client ------------------------
 
-        public String clientIpAddr = "192.168.35.236";
+        public String clientIpAddr = "127.0.0.1";
         public String clientPort = "5000";
 
         public String clientSendData;
@@ -596,6 +596,16 @@ namespace VewModelSample.Model
         public Boolean clientTextBoxTF = true;
 
         public Uri clientFrameBind;
+
+        public class clientDataGrid
+        {
+            public int dataGridSequence { get; set; }
+            public String dataGridFunction { get; set; }
+            public String dataGridAddedTime { get; set; }
+            public String dataGridSimpleRecordText { get; set; }
+        }
+
+        public ObservableCollection<ClockModel.clientDataGrid> _clientLogDatas = null;
 
         // Common ------------------------
 
