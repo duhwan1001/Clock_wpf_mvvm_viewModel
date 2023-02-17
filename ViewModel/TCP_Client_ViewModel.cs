@@ -464,7 +464,7 @@ namespace VewModelSample.ViewModel
                 return;
             }
 
-            if (int.Parse(TCP_AlarmHour) > 12 || int.Parse(TCP_AlarmMin) > 60)
+            if (int.Parse(TCP_AlarmHour) > 24 || int.Parse(TCP_AlarmMin) > 60)
             {
                 System.Windows.MessageBox.Show("정확한 시간을 입력하세요", "오류", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
