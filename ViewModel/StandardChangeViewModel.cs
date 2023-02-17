@@ -1,15 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 using VewModelSample.Model;
-using VewModelSample.ViewModel.Command;
-using System.Windows;
 using VewModelSample.View;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.ToolTip;
+using VewModelSample.ViewModel.Command;
 
 namespace VewModelSample.ViewModel
 {

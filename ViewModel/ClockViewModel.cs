@@ -1,17 +1,13 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Threading;
+using System.IO;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Input;
 using VewModelSample.Model;
-using VewModelSample.ViewModel;
+using VewModelSample.View;
 using VewModelSample.ViewModel.Command;
 using MessageBox = System.Windows.MessageBox;
-using System.IO;
-using System.Windows.Media;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.ToolTip;
-using VewModelSample.View;
 
 namespace VewModelSample.ViewModel
 {

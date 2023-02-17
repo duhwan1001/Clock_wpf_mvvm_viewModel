@@ -2,14 +2,13 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Text.RegularExpressions;
 using System.Threading;
+using System.Windows;
 using System.Windows.Input;
 using VewModelSample.Model;
-using VewModelSample.ViewModel.Command;
-using System.Windows;
 using VewModelSample.UtilClass;
-using System.Text.RegularExpressions;
-using static VewModelSample.Model.ClockModel;
+using VewModelSample.ViewModel.Command;
 
 namespace VewModelSample.ViewModel
 {

@@ -1,16 +1,16 @@
 ﻿using System;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-using System.Windows.Input;
-using VewModelSample.ViewModel.Command;
-using System.Net;
 using System.Windows;
-using System.ComponentModel;
+using System.Windows.Input;
 using VewModelSample.Model;
-using VewModelSample.View;
 using VewModelSample.UtilClass;
+using VewModelSample.View;
+using VewModelSample.ViewModel.Command;
 using static VewModelSample.Model.ClockModel;
-using System.Collections.ObjectModel;
 
 namespace VewModelSample.ViewModel
 {

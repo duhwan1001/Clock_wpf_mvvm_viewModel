@@ -1,5 +1,4 @@
 ﻿using System.Windows;
-using VewModelSample.ViewModel;
 
 namespace VewModelSample.View
 {
@@ -11,7 +10,6 @@ namespace VewModelSample.View
         public TimeFormatChange()
         {
             InitializeComponent();
-            //this.DataContext = ClockViewModel.Instance;
         }
     }
 }
