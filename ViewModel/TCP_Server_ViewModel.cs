@@ -662,7 +662,10 @@ namespace VewModelSample.ViewModel
         public ICommand ServerTerminate => new RelayCommand<object>(serverTerminate, null);
         private void serverTerminate(object e)
         {
-            tcpListener.Stop();
+            if(tcpListener != null)
+            {
+                tcpListener.Stop();
+            }
             if(tcpClient != null)
             {
                 tcpClient.Close();
@@ -673,7 +676,7 @@ namespace VewModelSample.ViewModel
             }
             MessageBox.Show("서버가 종료되었습니다.", "서버 종료", MessageBoxButton.OK, MessageBoxImage.Warning);
             //viewLog.AddData("Server", Standard.ToString(StandardChangeViewFormat), "Server Terminate");
-            //AddServerLog("Server", Standard.ToString(StandardChangeViewFormat), "Server Terminate");
+            AddServerLog("Server", Standard.ToString(StandardChangeViewFormat), "Server Terminate");
             ServerButtonText = "서버 시작";
             ServerButtonTF = true;
         }
