@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Net.Sockets;
 using System.Threading;
 using System.Windows.Input;
@@ -10,14 +9,8 @@ using System.ComponentModel;
 using VewModelSample.Model;
 using VewModelSample.View;
 using VewModelSample.UtilClass;
-using System.Windows.Controls;
-using System.Data.SqlTypes;
-using System.Linq;
-using System.Net.Http;
 using static VewModelSample.Model.ClockModel;
 using System.Collections.ObjectModel;
-using System.Windows.Threading;
-using System.Text.RegularExpressions;
 
 namespace VewModelSample.ViewModel
 {
@@ -33,11 +26,8 @@ namespace VewModelSample.ViewModel
             }
         }
 
-        static readonly object lck = new Object();
-
         // 모델 싱글톤
         private Model.ClockModel clockModel = null;
-        //private ViewModel.ViewLogViewModel viewLog = null;
         private ViewModel.AlarmViewModel alarmViewModel = null;
         private ViewModel.StopwatchViewModel sw = null;
 
@@ -45,7 +35,6 @@ namespace VewModelSample.ViewModel
         public TCP_Server_ViewModel()
         {
             clockModel = ClockModel.Instance;
-            //viewLog = ViewModel.ViewLogViewModel.Instance;
             alarmViewModel = ViewModel.AlarmViewModel.Instance;
             sw = ViewModel.StopwatchViewModel.Instance;
         }
@@ -260,7 +249,6 @@ namespace VewModelSample.ViewModel
         public int AlarmThreadSeq
         {
             get { return clockModel.alarmThreadSeq += 1; }
-            //set { clockModel.alarmThreadSeq = value; OnPropertyChanged("AlarmThreadSeq"); }
         }
         #endregion
 
@@ -282,7 +270,6 @@ namespace VewModelSample.ViewModel
         NetworkStream stream = null;
         private void connect()
         {
-            //viewLog.AddData("Server", Standard.ToString(StandardChangeViewFormat), "Server Start");
             AddServerLog("Server", Standard.ToString(StandardChangeViewFormat), "Server Start");
             tcpListener = new TcpListener(IPAddress.Any, int.Parse(ServerPort));
 
@@ -326,7 +313,6 @@ namespace VewModelSample.ViewModel
                 tcpClient.Close();
 
                 MessageBox.Show("서버가 종료되었습니다.", "서버 종료", MessageBoxButton.OK, MessageBoxImage.Warning);
-                //viewLog.AddData("Server", Standard.ToString(StandardChangeViewFormat), "Server Terminate");
                 AddServerLog("Server", Standard.ToString(StandardChangeViewFormat), "Server Terminate");
                 ServerButtonText = "서버 시작";
                 ServerButtonTF = true;
@@ -402,20 +388,17 @@ namespace VewModelSample.ViewModel
 
                             String RecordText = ClientIP + "에서 변경 : " + now + "에서 변경한 시간 : " + afterChangeTime;
 
-                            //viewLog.AddData("ChangeTime", now, RecordText);
                             AddServerLog("ChangeTime", now, RecordText);
 
                             result.result = true;
                             result.reason = "시간 변경 성공";
 
                             MessageBox.Show("시간 설정 완료.", "성공", MessageBoxButton.OK, MessageBoxImage.Information);
-                            //tcpListener.Stop();
                         }
                         catch(Exception ex)
                         {
                             result.result = false;
                             result.reason = "시간 변경 실패";
-                            //viewLog.AddData("ChangeTime", Standard.ToString(StandardChangeViewFormat), ClientIP + "에서 시간 변경 실패");
                             AddServerLog("ChangeTime", Standard.ToString(StandardChangeViewFormat), ClientIP + "에서 시간 변경 실패");
                             MessageBox.Show("" + ex, "error");
                         }
@@ -458,7 +441,6 @@ namespace VewModelSample.ViewModel
                             String RecordText = ClientIP + "에서 변경 : " + beforeChangeTime + " => " + TimeFormat;
 
                             AddServerLog(function, now, RecordText);
-                            //viewLog.AddData(function, now, RecordText);
 
                             MessageBox.Show("선택한 포맷으로 변경 하였습니다.", "성공", MessageBoxButton.OK, MessageBoxImage.Information);
 
@@ -469,7 +451,6 @@ namespace VewModelSample.ViewModel
                         {
                             result.result = false;
                             result.reason = "타임포맷 변경 실패";
-                            //viewLog.AddData("ChangeTimeFormat", Standard.ToString(StandardChangeViewFormat), ClientIP + "에서 타임포맷 변경 실패");
                             AddServerLog("ChangeTimeFormat", Standard.ToString(StandardChangeViewFormat), ClientIP + "에서 타임포맷 변경 실패");
                         }
 
@@ -511,7 +492,6 @@ namespace VewModelSample.ViewModel
                             Kind = StandardChangeFormat;
                             String RecordText = ClientIP + "에서 변경 : " + beforeKind + "에서 변경한 기준시 : " + Kind;
 
-                            //viewLog.AddData(function, now, RecordText);
                             AddServerLog(function, now, RecordText);
 
                             result.result = true;
@@ -521,7 +501,6 @@ namespace VewModelSample.ViewModel
                         {
                             result.result = false;
                             result.reason = "표준시 변경 실패";
-                            //viewLog.AddData("ChangeStandard", Standard.ToString(StandardChangeViewFormat), ClientIP + "에서 표준시 변경 실패");
                             AddServerLog("ChangeStandard", Standard.ToString(StandardChangeViewFormat), ClientIP + "에서 표준시 변경 실패");
                         }
 
@@ -569,11 +548,9 @@ namespace VewModelSample.ViewModel
                             String RecordText = ClientIP + "에서 변경 : " + "등록한 알람 => " + targetTime;
                             AddServerLog("SetAlarm", Standard.ToString(StandardChangeViewFormat), RecordText);
 
-                            //viewLog.AddData("SetAlarm", Standard.ToString(StandardChangeViewFormat), RecordText);
                             alarmViewModel.AddAlarm(targetTime);
-                            
-                            
-                            alarmViewModel.alarmThread = new Thread(alarmViewModel.waitingAlarm); // 알람 삭제한 뒤에 또 추가하려고 하면 터짐
+                                                        
+                            alarmViewModel.alarmThread = new Thread(alarmViewModel.waitingAlarm); // 알람 삭제한 뒤에 또 추가하려고 하면 터짐 : 스레드 점유 문제였음. Dispatcher.BeginInvoke로 해결
                             alarmViewModel.alarmThread.IsBackground = true;
                             alarmViewModel.alarmThread.Name = (AlarmThreadSeq).ToString();
 
@@ -593,7 +570,6 @@ namespace VewModelSample.ViewModel
                         {
                             result.result = false;
                             result.reason = "알람 추가 실패";
-                            //viewLog.AddData("AddAlarm", Standard.ToString(StandardChangeViewFormat), ClientIP + "에서 알람 추가 실패");
                             AddServerLog("AddAlarm", Standard.ToString(StandardChangeViewFormat), ClientIP + "에서 알람 추가 실패");
                         }
 
@@ -617,7 +593,6 @@ namespace VewModelSample.ViewModel
                             if (stopwatchFlag == 0)
                             {
                                 sw.FirstStartSW();
-                                //viewLog.AddData("Stopwatch", Standard.ToString(StandardChangeViewFormat), "스톱워치 시작");
                                 AddServerLog("StopWatch", Standard.ToString(StandardChangeViewFormat), "스톱워치 시작 성공");
                                 result.reason = "스톱워치 시작 성공";
                             }
@@ -646,7 +621,6 @@ namespace VewModelSample.ViewModel
                         {
                             result.result = false;
                             result.reason = "스톱워치 제어 실패";
-                            //viewLog.AddData("StopWatch", Standard.ToString(StandardChangeViewFormat), ClientIP + "에서 스톱워치 제어 실패");
                             AddServerLog("StopWatch", Standard.ToString(StandardChangeViewFormat), ClientIP + "에서 스톱워치 제어 실패");
                         }
 
@@ -675,7 +649,6 @@ namespace VewModelSample.ViewModel
                 stream.Close();
             }
             MessageBox.Show("서버가 종료되었습니다.", "서버 종료", MessageBoxButton.OK, MessageBoxImage.Warning);
-            //viewLog.AddData("Server", Standard.ToString(StandardChangeViewFormat), "Server Terminate");
             AddServerLog("Server", Standard.ToString(StandardChangeViewFormat), "Server Terminate");
             ServerButtonText = "서버 시작";
             ServerButtonTF = true;

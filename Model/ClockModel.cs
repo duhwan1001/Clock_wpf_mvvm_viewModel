@@ -482,7 +482,6 @@ namespace VewModelSample.Model
         public int AlarmThreadSeq
         {
             get { return alarmThreadSeq += 1; }
-            //set { clockModel.alarmThreadSeq = value; OnPropertyChanged("AlarmThreadSeq"); }
         }
         public class alarmData
         {
@@ -532,8 +531,6 @@ namespace VewModelSample.Model
             get { return swLeftButtonTF; }
             set { swLeftButtonTF = value; OnPropertyChanged("SwLeftButtonTF"); }
         }
-
-        //public int stopWatchSeq = 0;
 
         public class swData
         {
@@ -630,15 +627,6 @@ namespace VewModelSample.Model
 
         // 스톱 워치
         public int tcp_StopWatchFlag;
-
-        //public enum tcp_StopWatchFlag : int
-        //{
-        //    start = 0, // 0 : 시작
-        //    stop,      // 1 : 정지
-        //    reset,     // 2 : 리셋
-        //    lap        // 3 : 기록
-        //}
-
         #endregion
     }
 }
